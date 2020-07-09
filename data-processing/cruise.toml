@@ -1,0 +1,183 @@
+[global]
+author         = "jgrelet IRD March 2020 PIRATA-FR30 cruise"
+debug          = false
+echo           = true
+
+[cruise]
+cycleMesure    = "PIRATA-FR30"
+plateforme     = "THALASSA"
+callsign       = "FNFP"
+institute      = "IRD"
+timezone       = "GMT"
+beginDate      = "17/02/2020"
+endDate        = "22/03/2020"
+pi             = "BOURLES"
+creator        = "Jacques.Grelet@ird.fr"
+
+[ctd]
+cruisePrefix   = "fr30"
+station = 'Station\s*:\s*\D*(\d*)'
+stationPrefixLength  = 3
+titleSummary  = "CTD profiles processed during PIRATA-FR30 cruise"
+typeInstrument   = "SBE911+"
+instrumentNumber  = "09P1263"
+
+[ctd.header]
+isHeader = '^[*#]'
+DATETIME = 'System UpLoad Time\s*=\s*(\w+)\s+(\d+)\s+(\d+)\s+(\d+):(\d+):(\d+)'
+LATITUDE = 'NMEA\s+Latitude\s*[:=]\s*(\d+)\s+(\d+\.\d+)\s+(\w)'
+LONGITUDE = 'NMEA\s+Longitude\s*[:=]\s*(\d+)\s+(\d+.\d+)\s+(\w)'
+DATE = 'Date\s*:\s*(\d+)/(\d+)/(\d+)'
+TIME = '[Heure|Hour]\s*:\s*(\d+)[:hH](\d+):(\d+)'
+bottomDepth = 'Bottom Depth\s*:\s*(\d*\.?\d+?)\s*\S*'
+operator = 'Operator\s*:\s*(.*)'
+type = 'Type\s*:\s*(.*)'
+
+[btl]
+typeInstrument           = "SBE32 standard 24 Niskin bottles"
+instrumentNumber         = "unknown"
+titleSummary   = "Water sample during PIRATA-FR30 cruise with 22 levels"
+comment        = "CTD bottles water sampling with temperature, salinity and oxygen from primary and secondary sensors"
+
+[xbt]
+
+cruisePrefix   = "fr30"
+stationPrefixLength  = 3
+acquisitionSoftware = "WinMK21"
+acquisitionVersion = "2.10.1" 
+processingSoftware = ""
+processingVersion = ""
+type           = "SIPPICAN"
+sn             = "01150"
+title_summary  = "XBT profiles processed during PIRATA-FR30 cruise"
+comment        = "Extract from .edf files"
+
+	[xbt.header]
+	endHeader = 'Depth\s*\(m\)'
+	TIME = 'Time of Launch\s*[:=]\s*(\d+):(\d+):(\d+)'
+	DATE = 'Date of Launch\s*[:=]\s*(\d+)/(\d+)/(\d+)'
+	DATETIME = 'System UpLoad Time\s*=\s*(\w+)\s+(\d+)\s+(\d+)\s+(\d+):(\d+):(\d+)'
+	LATITUDE = 'Latitude\s*[:=]\s*(\d+)\s+(\d+\.\d+)(\w)'
+	LONGITUDE = 'Longitude\s*[:=]\s*(\d+)\s+(\d+.\d+)(\w)'
+
+[thermo]
+cruisePrefix   = "fr30"
+stationPrefixLength  = 3 
+separator = ","
+acquisitionSoftware = "COLCOR"
+acquisitionVersion = ""
+processingSoftware = ""
+processingVersion = ""
+type           = "SBE21"
+sn             = 3199 
+calDate        = "14/01/2019" 
+externalType   = "SBE3S"
+externalSn     = 4074
+externalCalDate = "16/01/2018"
+depth_intake   = 4
+title_summary  = "Thermosalinograph data acquired with Seabird SBE21 instrument and reduce with THECSAS/COLCOR"
+comment        = "Extract from .colcor files"
+
+[ladcp]
+cruisePrefix   = "fr30"
+stationPrefixLength  = 3
+acquisitionSoftware = "BBTALK"
+acquisitionVersion = 3.04
+processingSoftware = "MATLAB-VISBECK"
+processingVersion = "10.16.2"
+upType           = "WH300"
+upSn             = "24085"
+downType         = "WH150"
+downSn           = "24543"
+title_summary  = "IFM-GEOMAR/LDEO Matlab LADCP-Processing system adapted by FM/PR/JG"
+comment        = "Extract from .lad files"
+
+	[ladcp.header]
+	endHeader = 'Columns'
+	DATE = 'Date\s*=\s*(\d+)/(\d+)/(\d+)'
+	TIME = 'Start_Time\s*=\s*(\d+)[:hH](\d+):(\d+)'
+	LATITUDE = 'Latitude\s*[:=]\s*([-+]?\d+\.\d+)'
+	LONGITUDE = 'Longitude\s*[:=]\s*([-]?\d+.\d+)'
+
+[split]
+	[split.ctd]
+	ETDD = 1
+	PRES = 2
+	DEPTH = 3
+	TEMP = 4
+	PSAL = 17
+	DENS = 19
+	SVEL = 21
+	DOX2 = 15
+	FLU2 = 13
+	FLU3 = 14
+	TUR3 = 12
+	NAVG = 23
+
+	[split.ctdAll]
+	ETDD = 2
+	PRES = 3
+	DEPTH = 4
+	TE01 = 5
+	TE02 = 6
+	CND1 = 7
+	CND2 = 8
+	DOV1 = 9
+	DOV2 = 10
+	DVT1 = 11
+	DVT2 = 12
+	TUR3 = 13
+	FLU2 = 14
+	FLU3 = 15
+	DO12 = 16
+	DO22 = 17
+	PSA1 = 18
+	PSA2 = 19
+	DEN1 = 20
+	DEN2 = 21
+	SVEL = 22
+	NAVG = 23
+
+	[split.btl]
+	BOTL = 1
+	month = 2
+	day = 3
+	year = 4
+	PSA1 = 5
+	PSA2 = 6
+	DO11 = 7
+	DO12 = 8
+	DO21 = 9
+	DO22 = 10
+	Potemp090C = 11
+	Potemp190C = 12
+	ETDD = 13
+	PRES = 14
+	DEPH = 15
+	TE01 = 16
+	TE02 = 17
+	CND1 = 18
+	CND2 = 19
+	DOV1 = 20
+	DOV2 = 21
+	DVT1 = 22
+	DVT2 = 23
+	TUR3 = 24
+	FLU2 = 25
+	
+[split.xbt]
+	DEPTH = 3
+	TEMP = 4
+	SVEL = 5	
+
+[split.ladcp]
+	DEPTH = 0
+	EWCT = 1
+	NSCT = 2
+
+[split.tsg]
+	DEPTH = 0
+	SSJT = 1
+	SSTP = 2
+	SSPS = 3
+
