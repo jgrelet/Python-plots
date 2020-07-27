@@ -6,6 +6,9 @@
 *.o
 *.a
 *.swp
+*.png
+*.jpg
+*.jpeg
 *~
 *.ctd
 *_ctd
