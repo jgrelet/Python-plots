@@ -33,18 +33,18 @@ def list(x,lon):
     min_x = min(x)
     list = np.linspace(min_x,max_x,lon)
     return list
+
 #Finds the index when a value in the list x is greater than the desired distance
 # distance : int ; x : list
-
 def Indice(x,distance):
     dim = (np.where(x<=distance)[0])
     long = len(dim)-1
     return long
+
 #Arguments :
 #TEMP, DEPTH : Matrix
 #PROFILE, LATX : List
 #mini, maxi, debut, fin : int
-
 def plot_section(TEMP,DEPTH,PROFILE,debut,fin,LATX,inverse,mini,maxi,pas1,pas2):
 
     fig, ax = plt.subplots(2,1, sharex=True, sharey=True)
@@ -54,33 +54,33 @@ def plot_section(TEMP,DEPTH,PROFILE,debut,fin,LATX,inverse,mini,maxi,pas1,pas2):
     profil = num2 - num1 +1 #number of profile to be drawn
     print('SECTION',num1,'-',num2)
 
-#get the index when the distance is less than 250
+    #get the index when the distance is less than 250
     long1 = Indice(DEPTH[num1-1,:],251)
-#get the index when the distance is less than 2000
+    #get the index when the distance is less than 2000
     long2 = Indice(DEPTH[num1-1,:],2000)
     long2 = long2 - long1
 
-#list to have the scale on y for the plot
+    #list to have the scale on y for the plot
     Y1 = np.arange(0,300,50)
     Y2 = np.arange(300,2000,200)
 
-#creation of two matrices filled with zeros for the two section plots
+    #creation of two matrices filled with zeros for the two section plots
     TEMP_1 = np.zeros((long1,profil)) 
     TEMP_2 = np.zeros((long2,profil))
     
-#length of the new matrix (number of measurements taken into account)
+    #length of the new matrix (number of measurements taken into account)
     size1 = long2 + long1
     
     for k in range(0,size1) :
     
-#Values ​​ranging from 0m to 250m below sea surface
+        #Values ​​ranging from 0m to 250m below sea surface
         if (k<long1):
             temp = TEMP[num1-1:num2,k]
             if (inverse==True) : 
                 TEMP_1 [k] = temp[::-1]
             else :
                 TEMP_1 [k] = temp
-#Values ​​ranging from 0m to 250m below sea surface
+        #Values ​​ranging from 0m to 250m below sea surface
         if (k>long1):
             temp = TEMP[num1-1:num2,k]
             
@@ -89,7 +89,7 @@ def plot_section(TEMP,DEPTH,PROFILE,debut,fin,LATX,inverse,mini,maxi,pas1,pas2):
             else :
                 TEMP_2 [k-long1] = temp
                 
-#List for drawing lines on the plot
+    #List for drawing lines on the plot
     levels=np.arange(int(mini),int(maxi),pas1)
     levels1=np.arange(mini,int(maxi),pas2)
 
@@ -107,6 +107,7 @@ def plot_section(TEMP,DEPTH,PROFILE,debut,fin,LATX,inverse,mini,maxi,pas1,pas2):
     fig.colorbar(CS, ax=ax)
     plt.yticks(np.arange(0, long1, long1/5),Y1)# write depth on the y axis
     plt.xticks(np.arange(0, profil, profil/len(place)),place)# write latitude on the x axis
+
     #Second plot
     ax1 = plt.subplot(212)
     plt.gca().invert_yaxis()
@@ -132,6 +133,7 @@ LAT1 = ['','','1°S','','']
 LAT2 = ['','','8°S','','6°S','','4°S','','2°S','','0°S','']
 place = [LAT1,LAT2]
 labels=['3S-1N_0W-0-2000m','10S-1-30N_10W-0-2000m']
+
 #list to know if we must invert the x-axis or the latitudes
 inverse = [True,False]
 num_p=[7,14,16,39] #list of profiles that we want plotted (start and end)
