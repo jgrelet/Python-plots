@@ -18,7 +18,6 @@
 *_ladcp
 *.xbt
 *_xbt
-*.nc
 *.xml
 *.stackdump
 *_tmp
