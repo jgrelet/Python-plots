@@ -112,7 +112,7 @@ if __name__ == '__main__':
     # ncfile = "netcdf/OS_PIRATA-FR30_CTD.nc"
     # section(ncfile, ['PRES','TEMP','PSAL'], 'LATITUDE', 17, 40, [[0,250], [250,2000]],autoscale=False)
     ncfile = "netcdf/OS_PIRATA-FR31_ADCP.nc"
-    section(ncfile, ['DEPTH','EWCT', 'NSCT'], 'LATITUDE', 5, 28, [[0,250], [250,2200]], clevel=20, autoscale=False)
+    section(ncfile, ['DEPTH','EWCT'], 'LATITUDE', 5, 28, [[0,250], [250,2200]], clevel=20, autoscale=False)
     # section(ncfile, ['DEPTH','EWCT', 'NSCT'], 'LATITUDE', 5, 28, [0,2200])
     # ncfile = "netcdf/OS_PIRATA-FR31_CTD.nc"
     # section(ncfile, ['PRES','TEMP'], 'LATITUDE', 5, 28, [[0,250], [250,2000]])
