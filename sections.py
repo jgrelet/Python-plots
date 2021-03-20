@@ -13,17 +13,22 @@ from netCDF4 import Dataset
 #import pandas as pd
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
+from matplotlib import (ticker, cm)
 from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
                                 LatitudeLocator)
 
 def p(name, v):
-    if v.ndim == 1:
-        vv = v[-10:-1]
+    if isinstance(v, (int,float)):
+        print('{}: {}'.format(name,v)) 
     else:
-        vv = v[-10:-1][:]
-    print('{}: {}...\nType:{}, dtype: {}\nSize: {}, Shape:{}, Dim: {}\n'.
-        format(name, vv, type(v), v.dtype, v.size, v.shape, v.ndim))
+        if v.ndim == 0:
+            vv = v
+        elif v.ndim == 1:
+            vv = v[-10:-1]
+        else:
+            vv = v[-10:-1][:]
+        print('{}: {}...\nType:{}, dtype: {}\nSize: {}, Shape:{}, Dim: {}\n'.
+            format(name, vv, type(v), v.dtype, v.size, v.shape, v.ndim))
 
 
 def section(ncfile, parameters, xaxis, start, end, yscale,
@@ -58,7 +63,8 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
         else:
             zmin = nc.variables[var].valid_min
             zmax = nc.variables[var].valid_max
-
+        p('zmin', zmin)
+        p('zmax', zmax)
         # interpolate
         zi = np.array(([]))
         for i in range(0, len(z)):
@@ -81,12 +87,13 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
                 ax.set_ylim(yscale[i])
             #ax.invert_xaxis()
             ax.invert_yaxis()
-            cs = ax.contour(xi, yi, zi, levels=clevel, 
-                vmin=zmin, vmax=zmax, colors='black')
-            ax.clabel(cs, inline=True, fmt='%3.1f', fontsize=8)
-            plt1 = ax.contourf(xi, yi, zi, levels=clevel, 
-                vmin=zmin, vmax=zmax, cmap='jet', extend='both')
-            plt1.set_clim(zmin, zmax)
+            cmap = cm.get_cmap('jet', clevel)
+            norm = cm.colors.Normalize(vmin=zmin, vmax=zmax)
+            plt1 = ax.contourf(xi, yi, zi, levels=clevel, norm=norm,
+                cmap=cmap, extend='both')
+            cs = ax.contour(xi, yi, zi, plt1.levels, colors='black')
+            ax.clabel(plt1, inline=True, fmt='%3.1f', fontsize=8)
+            #plt1.set_clim(zmin, zmax)
             # add test for LONGITUDE and TIME 
             lat_formatter = LatitudeFormatter()
             ax.set_xticks(np.arange(np.round(np.min(x)),np.ceil(np.max(x))))
@@ -105,7 +112,7 @@ if __name__ == '__main__':
     # ncfile = "netcdf/OS_PIRATA-FR30_CTD.nc"
     # section(ncfile, ['PRES','TEMP','PSAL'], 'LATITUDE', 17, 40, [[0,250], [250,2000]],autoscale=False)
     ncfile = "netcdf/OS_PIRATA-FR31_ADCP.nc"
-    section(ncfile, ['DEPTH','EWCT', 'NSCT'], 'LATITUDE', 5, 28, [[0,250], [250,2200]], clevel=10, autoscale=False)
+    section(ncfile, ['DEPTH','EWCT', 'NSCT'], 'LATITUDE', 5, 28, [[0,250], [250,2200]], clevel=20, autoscale=False)
     # section(ncfile, ['DEPTH','EWCT', 'NSCT'], 'LATITUDE', 5, 28, [0,2200])
     # ncfile = "netcdf/OS_PIRATA-FR31_CTD.nc"
     # section(ncfile, ['PRES','TEMP'], 'LATITUDE', 5, 28, [[0,250], [250,2000]])
