@@ -89,10 +89,10 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
             ax.invert_yaxis()
             cmap = cm.get_cmap('jet', clevel)
             norm = cm.colors.Normalize(vmin=zmin, vmax=zmax)
-            plt1 = ax.contourf(xi, yi, zi, levels=clevel, norm=norm,
-                cmap=cmap, extend='both')
+            plt1 = ax.contourf(xi, yi, zi, levels=clevel, vmin=zmin, vmax=zmax,
+                cmap=cmap, norm=norm, extend='both')
             cs = ax.contour(xi, yi, zi, plt1.levels, colors='black')
-            ax.clabel(plt1, inline=True, fmt='%3.1f', fontsize=8)
+            ax.clabel(cs, inline=True, fmt='%3.1f', fontsize=8)
             #plt1.set_clim(zmin, zmax)
             # add test for LONGITUDE and TIME 
             lat_formatter = LatitudeFormatter()
@@ -101,7 +101,7 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
 
         # Matplotlib 2 Subplots, 1 Colorbar
         # https://stackoverflow.com/questions/13784201/matplotlib-2-subplots-1-colorbar
-        fig.colorbar(plt1, ax=fig.axes )
+        plt.colorbar(plt1, ax=fig.axes)
         ax.set_xlabel('{}'.format(nc.variables[xaxis].standard_name))
         ax.set_ylabel('{} [{}]'.format(nc.variables[yaxis].standard_name,
             nc.variables[yaxis].units),loc='bottom')
