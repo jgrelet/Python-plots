@@ -36,7 +36,6 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
 
     # Read ctd data
     nc = Dataset(ncfile, "r")
-    #nc.set_auto_maskandscale(False)
 
     # Y variable, PRES or DEPTH, must be first, add test
     yaxis = parameters[0]
@@ -63,15 +62,17 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
         # them between the minimum and maximum data (approximately). 
         # If you want to have n levels between two specific values vmin and vmax 
         # you would need to supply those to the contouring function.
-        p('z', z[4][:])
-        if autoscale:
-            zmin = np.min(z)
-            zmax = np.max(z)
+        if isinstance(autoscale,list):
+            zmin = autoscale[0]
+            zmax = autoscale[1]
         else:
-            zmin = nc.variables[var].valid_min
-            zmax = nc.variables[var].valid_max
+            if autoscale:
+                zmin = np.min(z)
+                zmax = np.max(z)
+            else:
+                zmin = nc.variables[var].valid_min
+                zmax = nc.variables[var].valid_max
         levels = np.linspace(zmin,zmax,clevels+1)
-        p('zmax', zmax)
 
         # interpolate
         zi = np.array(([]))
@@ -93,16 +94,11 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
                 ax.set_ylim(yscale[:])
             else:
                 ax.set_ylim(yscale[i])
-            #ax.invert_xaxis()
             ax.invert_yaxis()
-            #cmap = cm.get_cmap('jet') #, clevels)
-            #norm = cm.colors.Normalize(vmin=zmin, vmax=zmax)
             plt1 = ax.contourf(xi, yi, zi, levels=levels, vmin=zmin, vmax=zmax,
                 cmap='jet', extend='neither')
-                #cmap=cmap, norm=norm, extend='neither')
             cs = ax.contour(xi, yi, zi, plt1.levels, colors='black')
             ax.clabel(cs, inline=True, fmt='%3.1f', fontsize=8)
-            #plt1.set_clim(zmin, zmax)
             # add test for LONGITUDE and TIME 
             lat_formatter = LatitudeFormatter()
             ax.set_xticks(np.arange(np.round(np.min(x)),np.ceil(np.max(x))))
@@ -118,14 +114,14 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
 
 if __name__ == '__main__':
     
-    # ncfile = "netcdf/OS_PIRATA-FR30_CTD.nc"
-    # section(ncfile, ['PRES','TEMP','PSAL'], 'LATITUDE', 17, 40, [[0,250], [250,2000]],autoscale=False)
-    ncfile = "netcdf/OS_PIRATA-FR31_ADCP.nc"
-    section(ncfile, ['DEPTH','EWCT'], 'LATITUDE', 5, 28, [[0,250], [250,2200]], clevels=20, autoscale=True)
+    ncfile = "netcdf/OS_PIRATA-FR31_CTD.nc"
+    #section(ncfile, ['PRES','TEMP'], 'LATITUDE', 5, 28, [[0,250], [250,2000]],clevels=30,autoscale=[0,30])
+    #section(ncfile, ['PRES','PSAL'], 'LATITUDE', 5, 28, [[0,250], [250,2000]],clevels=15,autoscale=[34,37])
+    section(ncfile, ['PRES','DOX2'], 'LATITUDE', 5, 28, [[0,250], [200,2000]],clevels=22,autoscale=[0,220])
+    #section(ncfile, ['PRES','TEMP'], 'LATITUDE', 5, 28, [0,2000],clevels=30,autoscale=[0,30])
+    # ncfile = "netcdf/OS_PIRATA-FR31_ADCP.nc"
+    # section(ncfile, ['DEPTH','EWCT'], 'LATITUDE', 5, 28, [[0,250], [250,2200]], clevels=30, autoscale=False)
     # section(ncfile, ['DEPTH','EWCT', 'NSCT'], 'LATITUDE', 5, 28, [0,2200])
-    # ncfile = "netcdf/OS_PIRATA-FR31_CTD.nc"
-    # section(ncfile, ['PRES','TEMP'], 'LATITUDE', 5, 28, [[0,250], [250,2000]])
-    # # section(ncfile, ['PRES','TEMP','PSAL','DOX2'], 'LATITUDE', 5, 28, [[0,250], [250,2000]])
-    #ncfile = "netcdf/OS_PIRATA-FR31_XBT.nc"
-    #section(ncfile, ['DEPTH','TEMP'], 'LATITUDE', 18, 28, [0,900])
-
+    # ncfile = "netcdf/OS_PIRATA-FR31_XBT.nc"
+    # section(ncfile, ['DEPTH','TEMP'], 'LATITUDE', 18, 28, [0,900])
+ 
