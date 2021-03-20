@@ -1,7 +1,7 @@
 # generic plot sections
 
 # Todos:
-# add min and max for colorbar
+# set min and max for contourf
 # add intrument type: CTD, XBT, ADCP, ...
 # center xlabel over 2 subplots
 # interpolate xaxis
