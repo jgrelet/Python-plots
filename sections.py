@@ -32,7 +32,7 @@ def p(name, v):
 
 
 def section(ncfile, parameters, xaxis, start, end, yscale,
-    xinterp=24, yinterp=200, clevel=20, autoscale=True):
+    xinterp=24, yinterp=200, clevels=20, autoscale=True):
 
     # Read ctd data
     nc = Dataset(ncfile, "r")
@@ -87,9 +87,9 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
                 ax.set_ylim(yscale[i])
             #ax.invert_xaxis()
             ax.invert_yaxis()
-            cmap = cm.get_cmap('jet', clevel)
+            cmap = cm.get_cmap('jet', clevels)
             norm = cm.colors.Normalize(vmin=zmin, vmax=zmax)
-            plt1 = ax.contourf(xi, yi, zi, levels=clevel, vmin=zmin, vmax=zmax,
+            plt1 = ax.contourf(xi, yi, zi, levels=clevels, vmin=zmin, vmax=zmax,
                 cmap=cmap, norm=norm, extend='both')
             cs = ax.contour(xi, yi, zi, plt1.levels, colors='black')
             ax.clabel(cs, inline=True, fmt='%3.1f', fontsize=8)
@@ -112,7 +112,7 @@ if __name__ == '__main__':
     # ncfile = "netcdf/OS_PIRATA-FR30_CTD.nc"
     # section(ncfile, ['PRES','TEMP','PSAL'], 'LATITUDE', 17, 40, [[0,250], [250,2000]],autoscale=False)
     ncfile = "netcdf/OS_PIRATA-FR31_ADCP.nc"
-    section(ncfile, ['DEPTH','EWCT'], 'LATITUDE', 5, 28, [[0,250], [250,2200]], clevel=20, autoscale=False)
+    section(ncfile, ['DEPTH','EWCT'], 'LATITUDE', 5, 28, [[0,250], [250,2200]], clevels=20, autoscale=False)
     # section(ncfile, ['DEPTH','EWCT', 'NSCT'], 'LATITUDE', 5, 28, [0,2200])
     # ncfile = "netcdf/OS_PIRATA-FR31_CTD.nc"
     # section(ncfile, ['PRES','TEMP'], 'LATITUDE', 5, 28, [[0,250], [250,2000]])
