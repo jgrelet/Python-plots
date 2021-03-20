@@ -63,8 +63,6 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
         else:
             zmin = nc.variables[var].valid_min
             zmax = nc.variables[var].valid_max
-        p('zmin', zmin)
-        p('zmax', zmax)
         # interpolate
         zi = np.array(([]))
         for i in range(0, len(z)):
