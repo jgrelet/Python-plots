@@ -24,9 +24,9 @@ def p(name, v):
         if v.ndim == 0:
             vv = v
         elif v.ndim == 1:
-            vv = v[-10:-1]
+            vv = v[1:10]
         else:
-            vv = v[-10:-1][:]
+            vv = v[1:10][:]
         print('{}: {}...\nType:{}, dtype: {}\nSize: {}, Shape:{}, Dim: {}\n'.
             format(name, vv, type(v), v.dtype, v.size, v.shape, v.ndim))
 
@@ -36,6 +36,7 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
 
     # Read ctd data
     nc = Dataset(ncfile, "r")
+    #nc.set_auto_maskandscale(False)
 
     # Y variable, PRES or DEPTH, must be first, add test
     yaxis = parameters[0]
@@ -56,13 +57,22 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
         z = nc.variables[var][start:end][:]
         xi = np.linspace(x[0], x[-1], xinterp)
         yi = np.linspace(np.round(np.amin(y)), np.ceil(np.amax(y)), yinterp)
-
+        
+        # contourf indeed works a bit differently than other ScalarMappables.
+        # If you specify the number of levels (20 in this case) it will take 
+        # them between the minimum and maximum data (approximately). 
+        # If you want to have n levels between two specific values vmin and vmax 
+        # you would need to supply those to the contouring function.
+        p('z', z[4][:])
         if autoscale:
             zmin = np.min(z)
             zmax = np.max(z)
         else:
             zmin = nc.variables[var].valid_min
             zmax = nc.variables[var].valid_max
+        levels = np.linspace(zmin,zmax,clevels+1)
+        p('zmax', zmax)
+
         # interpolate
         zi = np.array(([]))
         for i in range(0, len(z)):
@@ -85,10 +95,11 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
                 ax.set_ylim(yscale[i])
             #ax.invert_xaxis()
             ax.invert_yaxis()
-            cmap = cm.get_cmap('jet', clevels)
-            norm = cm.colors.Normalize(vmin=zmin, vmax=zmax)
-            plt1 = ax.contourf(xi, yi, zi, levels=clevels, vmin=zmin, vmax=zmax,
-                cmap=cmap, norm=norm, extend='both')
+            #cmap = cm.get_cmap('jet') #, clevels)
+            #norm = cm.colors.Normalize(vmin=zmin, vmax=zmax)
+            plt1 = ax.contourf(xi, yi, zi, levels=levels, vmin=zmin, vmax=zmax,
+                cmap='jet', extend='neither')
+                #cmap=cmap, norm=norm, extend='neither')
             cs = ax.contour(xi, yi, zi, plt1.levels, colors='black')
             ax.clabel(cs, inline=True, fmt='%3.1f', fontsize=8)
             #plt1.set_clim(zmin, zmax)
@@ -110,11 +121,11 @@ if __name__ == '__main__':
     # ncfile = "netcdf/OS_PIRATA-FR30_CTD.nc"
     # section(ncfile, ['PRES','TEMP','PSAL'], 'LATITUDE', 17, 40, [[0,250], [250,2000]],autoscale=False)
     ncfile = "netcdf/OS_PIRATA-FR31_ADCP.nc"
-    section(ncfile, ['DEPTH','EWCT'], 'LATITUDE', 5, 28, [[0,250], [250,2200]], clevels=20, autoscale=False)
+    section(ncfile, ['DEPTH','EWCT'], 'LATITUDE', 5, 28, [[0,250], [250,2200]], clevels=20, autoscale=True)
     # section(ncfile, ['DEPTH','EWCT', 'NSCT'], 'LATITUDE', 5, 28, [0,2200])
     # ncfile = "netcdf/OS_PIRATA-FR31_CTD.nc"
     # section(ncfile, ['PRES','TEMP'], 'LATITUDE', 5, 28, [[0,250], [250,2000]])
     # # section(ncfile, ['PRES','TEMP','PSAL','DOX2'], 'LATITUDE', 5, 28, [[0,250], [250,2000]])
-    # ncfile = "netcdf/OS_PIRATA-FR31_XBT.nc"
-    # section(ncfile, ['DEPTH','TEMP'], 'LATITUDE', 18, 28, [0,900])
+    #ncfile = "netcdf/OS_PIRATA-FR31_XBT.nc"
+    #section(ncfile, ['DEPTH','TEMP'], 'LATITUDE', 18, 28, [0,900])
 
