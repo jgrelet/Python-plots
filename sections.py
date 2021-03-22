@@ -110,8 +110,10 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
         # https://stackoverflow.com/questions/13784201/matplotlib-2-subplots-1-colorbar
         plt.colorbar(plt1, ax=fig.axes)
         ax.set_xlabel('{}'.format(nc.variables[xaxis].standard_name))
-        ax.set_ylabel('{} [{}]'.format(nc.variables[yaxis].standard_name,
-            nc.variables[yaxis].units),loc='bottom')
+        ylabel = '{} [{}]'.format(nc.variables[yaxis].standard_name,
+            nc.variables[yaxis].units)
+        # display common y label with text instead of ax.set_ylabel    
+        fig.text(0.04, 0.5, ylabel, va='center', ha='center', rotation='vertical')
         plt.show()
 
 if __name__ == '__main__':
