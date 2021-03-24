@@ -67,7 +67,8 @@ def processArgs():
         'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -p -k DEPTH TEMP DENS SVEL -c k- b- k- g- -g\n'
         'python plots.py netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP -p -k DEPTH EWCT NSCT -c k- r- b- -g\n'
         'SECTIONS:\n'
-        'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s -k PRES TEMP -l 5 28 --xaxis LATITUDE --yscale [[0,250],[250,2000]] --clevels=30 --autoscale [0,30]\n'
+        'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s -k PRES TEMP -l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 200 --clevels=30 --autoscale 0 30\n'
+        'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s -k PRES PSAL -l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 100 --clevels=15 --autoscale 34 37\n'
         #section(ncfile, ['PRES','TEMP'], 'LATITUDE', 5, 28, [[0,250], [250,2000]],clevels=30,autoscale=[0,30])
  
         'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s DEPTH TEMP -a LATITUDE\n'
@@ -280,8 +281,6 @@ class Plots():
 
         # Y variable, PRES or DEPTH, must be first, add test
         yaxis = self.keys[0]
-        print(yscale)
-        print(yscale.ndim)
         # find the profile index
         profiles = self.nc.variables['PROFILE'][:].tolist()
         start = profiles.index(start)
@@ -355,8 +354,8 @@ class Plots():
             # display common y label with text instead of ax.set_ylabel    
             fig.text(0.04, 0.5, ylabel, va='center', ha='center', rotation='vertical')
             #plt.show()
-            figname = '{}-section-{}.png'.format(
-                self.nc.cycle_mesure, self.type)
+            figname = '{}-section-{}-{}.png'.format(
+                self.nc.cycle_mesure, self.type, var)
             dest = os.path.join(path, figname)
             print(dest)
             fig.savefig(dest)
