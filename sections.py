@@ -120,12 +120,12 @@ if __name__ == '__main__':
     
     ncfile = "netcdf/OS_PIRATA-FR31_CTD.nc"
     section(ncfile, ['PRES','TEMP'], 'LATITUDE', 5, 28, [[0,250], [250,2000]],clevels=30,autoscale=[0,30])
-    section(ncfile, ['PRES','PSAL'], 'LATITUDE', 5, 28, [[0,250], [250,2000]],clevels=15,autoscale=[34,37])
-    section(ncfile, ['PRES','DOX2'], 'LATITUDE', 5, 28, [[0,250], [200,2000]],clevels=22,autoscale=[0,220])
-    section(ncfile, ['PRES','TEMP'], 'LATITUDE', 5, 28, [0,2000],clevels=30,autoscale=[0,30])
-    # ncfile = "netcdf/OS_PIRATA-FR31_ADCP.nc"
+    # section(ncfile, ['PRES','PSAL'], 'LATITUDE', 5, 28, [[0,250], [250,2000]],clevels=15,autoscale=[34,37])
+    # section(ncfile, ['PRES','DOX2'], 'LATITUDE', 5, 28, [[0,250], [200,2000]],clevels=22,autoscale=[0,220])
+    # section(ncfile, ['PRES','TEMP'], 'LATITUDE', 5, 28, [0,2000],clevels=30,autoscale=[0,30])
+    # # ncfile = "netcdf/OS_PIRATA-FR31_ADCP.nc"
     # section(ncfile, ['DEPTH','EWCT'], 'LATITUDE', 5, 28, [[0,250], [250,2200]], clevels=30, autoscale=False)
     # section(ncfile, ['DEPTH','EWCT', 'NSCT'], 'LATITUDE', 5, 28, [0,2200])
-    ncfile = "netcdf/OS_PIRATA-FR31_XBT.nc"
-    section(ncfile, ['DEPTH','TEMP'], 'LATITUDE', 29, 36, [[0,250], [250,900]],clevels=30,autoscale=[0,30])
+    # ncfile = "netcdf/OS_PIRATA-FR31_XBT.nc"
+    # section(ncfile, ['DEPTH','TEMP'], 'LATITUDE', 29, 36, [[0,250], [250,900]],clevels=30,autoscale=[0,30])
  
