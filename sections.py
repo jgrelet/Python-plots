@@ -11,15 +11,16 @@ import numpy as np
 #import xarray as xr
 from netCDF4 import Dataset
 #import pandas as pd
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d, griddata
 import matplotlib.pyplot as plt
 from matplotlib import (ticker, cm)
 from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
                                 LatitudeLocator)
 
+
 def p(name, v):
-    if isinstance(v, (int,float)):
-        print('{}: {}'.format(name,v)) 
+    if isinstance(v, (int, float)):
+        print('{}: {}'.format(name, v))
     else:
         if v.ndim == 0:
             vv = v
@@ -28,11 +29,11 @@ def p(name, v):
         else:
             vv = v[1:10][:]
         print('{}: {}...\nType:{}, dtype: {}\nSize: {}, Shape:{}, Dim: {}\n'.
-            format(name, vv, type(v), v.dtype, v.size, v.shape, v.ndim))
+              format(name, vv, type(v), v.dtype, v.size, v.shape, v.ndim))
 
 
 def section(ncfile, parameters, xaxis, start, end, yscale,
-    xinterp=24, yinterp=200, clevels=20, autoscale=True):
+            xinterp=20, yinterp=200, clevels=20, autoscale=True):
 
     # Read ctd data
     nc = Dataset(ncfile, "r")
@@ -45,24 +46,26 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
     profiles = nc.variables['PROFILE'][:].tolist()
     start = profiles.index(start)
     end = profiles.index(end) + 1
-    if xinterp > end -start:
+    nbxi = end - start
+
+    if xinterp > end - start:
         xinterp = end - start
     yinterp = 200
 
     for k in range(1, len(parameters)):
-        var   = parameters[k]
+        var = parameters[k]
         x = nc.variables[xaxis][start:end]
         y = nc.variables[yaxis][start:end][:]
         z = nc.variables[var][start:end][:]
-        xi = np.linspace(x[0], x[-1], xinterp)
+        xi = np.linspace(x[0], x[-1], nbxi)
         yi = np.linspace(np.round(np.amin(y)), np.ceil(np.amax(y)), yinterp)
-        
+
         # contourf indeed works a bit differently than other ScalarMappables.
-        # If you specify the number of levels (20 in this case) it will take 
-        # them between the minimum and maximum data (approximately). 
-        # If you want to have n levels between two specific values vmin and vmax 
+        # If you specify the number of levels (20 in this case) it will take
+        # them between the minimum and maximum data (approximately).
+        # If you want to have n levels between two specific values vmin and vmax
         # you would need to supply those to the contouring function.
-        if isinstance(autoscale,list):
+        if isinstance(autoscale, list):
             zmin = autoscale[0]
             zmax = autoscale[1]
         else:
@@ -72,10 +75,10 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
             else:
                 zmin = nc.variables[var].valid_min
                 zmax = nc.variables[var].valid_max
-        levels = np.linspace(zmin,zmax,clevels+1)
-        sublevels = np.linspace(zmin,zmax,round(clevels/5)+1)
+        levels = np.linspace(zmin, zmax, clevels+1)
+        sublevels = np.linspace(zmin, zmax, round(clevels/5)+1)
 
-        # interpolate
+        # verticale interpolation
         zi = np.array(([]))
         for i in range(0, len(z)):
             # convert fill_value from Dataset to numpy
@@ -83,12 +86,28 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
             zz = np.ma.masked_array(z[i]).filled(np.nan)
             Z = np.interp(yi, yy, zz)
             zi = np.append(zi, Z, axis=0)
-        zi = zi.reshape(xinterp, yinterp).transpose()
+        #zi = zi.reshape(nbxi, yinterp).transpose()
+        zi = zi.reshape(nbxi, yinterp)
+
+        xx, yy = np.meshgrid(xi, yi, indexing='ij')
+        xi = np.linspace(x[0], x[-1], xinterp)
+        #zi = griddata((xx, yy), zi, (xii, yi))
+        zi = griddata((xx.ravel(), yy.ravel()), zi.ravel(),
+                      (xi[None, :], yi[:, None]))
+
+        # horizontal interpolation
+        # zi = np.array(([]))
+        # xii = np.linspace(x[0], x[-1], xinterp)
+        # for i in range(0, len(yi)):
+        #     Z = np.interp(xii, xi, zii[i][:])
+        #     zi = np.append(zi, Z, axis=0)
+        # zi = zi.reshape(len(yi), xinterp).transpose()
+        # p('zi', zi)
 
         # plot contour(s)
-        fig, ax = plt.subplots(yscale.ndim,1, sharex=True, squeeze=False)
-        fig.axes[0].set_title('{}\n{}, {} [{}]'.format(nc.cycle_mesure, var, 
-            nc.variables[var].long_name, nc.variables[var].units))
+        fig, ax = plt.subplots(yscale.ndim, 1, sharex=True, squeeze=False)
+        fig.axes[0].set_title('{}\n{}, {} [{}]'.format(nc.cycle_mesure, var,
+                                                       nc.variables[var].long_name, nc.variables[var].units))
         # loop over vertical range, ex: [0,2000] or [[0,250], [250,2000]]
         for i, ax in enumerate(fig.axes):
             if yscale.ndim == 1:
@@ -97,13 +116,15 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
                 ax.set_ylim(yscale[i])
             ax.invert_yaxis()
             plt1 = ax.contourf(xi, yi, zi, levels=levels, vmin=zmin, vmax=zmax,
-                cmap='jet', extend='neither')
-            cs = ax.contour(xi, yi, zi, plt1.levels, colors='black', linewidths=0.5)
-            cs = ax.contour(xi, yi, zi, sublevels, colors='black', linewidths=1.5)
+                               cmap='jet', extend='neither')
+            cs = ax.contour(xi, yi, zi, plt1.levels,
+                            colors='black', linewidths=0.5)
+            cs = ax.contour(xi, yi, zi, sublevels,
+                            colors='black', linewidths=1.5)
             ax.clabel(cs, inline=True, fmt='%3.1f', fontsize=8)
-            # add test for LONGITUDE and TIME 
+            # add test for LONGITUDE and TIME
             lat_formatter = LatitudeFormatter()
-            ax.set_xticks(np.arange(np.round(np.min(x)),np.ceil(np.max(x))))
+            ax.set_xticks(np.arange(np.round(np.min(x)), np.ceil(np.max(x))))
             ax.xaxis.set_major_formatter(lat_formatter)
 
         # Matplotlib 2 Subplots, 1 Colorbar
@@ -111,15 +132,18 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
         plt.colorbar(plt1, ax=fig.axes)
         ax.set_xlabel('{}'.format(nc.variables[xaxis].standard_name))
         ylabel = '{} [{}]'.format(nc.variables[yaxis].standard_name,
-            nc.variables[yaxis].units)
-        # display common y label with text instead of ax.set_ylabel    
-        fig.text(0.04, 0.5, ylabel, va='center', ha='center', rotation='vertical')
+                                  nc.variables[yaxis].units)
+        # display common y label with text instead of ax.set_ylabel
+        fig.text(0.04, 0.5, ylabel, va='center',
+                 ha='center', rotation='vertical')
         plt.show()
 
+
 if __name__ == '__main__':
-    
+
     ncfile = "netcdf/OS_PIRATA-FR31_CTD.nc"
-    section(ncfile, ['PRES','TEMP'], 'LATITUDE', 5, 28, [[0,250], [250,2000]],clevels=30,autoscale=[0,30])
+    section(ncfile, ['PRES', 'TEMP'], 'LATITUDE', 5, 28, [
+            [0, 250], [250, 2000]], xinterp=10, yinterp=100, clevels=30, autoscale=[0, 30])
     # section(ncfile, ['PRES','PSAL'], 'LATITUDE', 5, 28, [[0,250], [250,2000]],clevels=15,autoscale=[34,37])
     # section(ncfile, ['PRES','DOX2'], 'LATITUDE', 5, 28, [[0,250], [200,2000]],clevels=22,autoscale=[0,220])
     # section(ncfile, ['PRES','TEMP'], 'LATITUDE', 5, 28, [0,2000],clevels=30,autoscale=[0,30])
@@ -128,4 +152,3 @@ if __name__ == '__main__':
     # section(ncfile, ['DEPTH','EWCT', 'NSCT'], 'LATITUDE', 5, 28, [0,2200])
     # ncfile = "netcdf/OS_PIRATA-FR31_XBT.nc"
     # section(ncfile, ['DEPTH','TEMP'], 'LATITUDE', 29, 36, [[0,250], [250,900]],clevels=30,autoscale=[0,30])
- 
