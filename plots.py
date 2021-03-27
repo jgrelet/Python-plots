@@ -203,7 +203,12 @@ class Plots():
         tkw = dict(size=4, width=1.5)
         # find the profile index
         profiles = self.nc.variables['PROFILE'][:].tolist()
-        index = profiles.index(profile)
+        try:
+            index = profiles.index(profile)
+        except:
+            print('Profile {} is missing'.format(profile))
+            return    
+
         # the first plot with the first parameter, DEPTH or PRES
         y = self.nc.variables[self.keys[0]][index, :]
         x = self.nc.variables[self.keys[1]][index, :]
@@ -406,9 +411,10 @@ if __name__ == '__main__':
     p = Plots(args.files, args.keys, args.type, args.colors, args.grid)
 
     # set first and last profiles or all profiles
-    end = p.nc.variables['PROFILE'][-1]
+    profiles = p.nc.variables['PROFILE']
+    end = profiles[-1]
     if args.list == None:
-        start = p.nc.variables['PROFILE'][0]
+        start = profiles[0]
     # from args.list with start and end values
     elif len(args.list) == 2:
         start, end = args.list[0], args.list[1]
