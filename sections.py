@@ -11,9 +11,9 @@ import numpy as np
 #import xarray as xr
 from netCDF4 import Dataset
 #import pandas as pd
-from scipy.interpolate import interp1d, griddata
+from scipy.interpolate import (interp1d, griddata)
 import matplotlib.pyplot as plt
-from matplotlib import (ticker, cm)
+from matplotlib import (ticker, cm, gridspec)
 from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
                                 LatitudeLocator)
 
@@ -95,21 +95,19 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
         zi = griddata((xx.ravel(), yy.ravel()), zi.ravel(),
                       (xi[None, :], yi[:, None]))
 
-        # horizontal interpolation
-        # zi = np.array(([]))
-        # xii = np.linspace(x[0], x[-1], xinterp)
-        # for i in range(0, len(yi)):
-        #     Z = np.interp(xii, xi, zii[i][:])
-        #     zi = np.append(zi, Z, axis=0)
-        # zi = zi.reshape(len(yi), xinterp).transpose()
-        # p('zi', zi)
-
         # plot contour(s)
-        fig, ax = plt.subplots(yscale.ndim, 1, sharex=True, squeeze=False)
-        fig.axes[0].set_title('{}\n{}, {} [{}]'.format(nc.cycle_mesure, var,
-                                                       nc.variables[var].long_name, nc.variables[var].units))
+        #fig, ax = plt.subplots(yscale.ndim, 1, sharex=True, squeeze=False)
+        fig = plt.figure(figsize=(6,8)) 
+        gs = gridspec.GridSpec(yscale.ndim, 1, height_ratios=[1,yscale.ndim]) 
+        #fig.axes[0].set_title('{}\n{}, {} [{}]'.format(nc.cycle_mesure, var,
+        #                                               nc.variables[var].long_name, nc.variables[var].units))
+        ax = plt.subplot(gs[0])
+        ax.set_title('{}\n{}, {} [{}]'.format(nc.cycle_mesure, var,
+                            nc.variables[var].long_name, nc.variables[var].units))
+        
         # loop over vertical range, ex: [0,2000] or [[0,250], [250,2000]]
-        for i, ax in enumerate(fig.axes):
+        for i, ax in enumerate(gs):
+            ax = plt.subplot(gs[i])
             if yscale.ndim == 1:
                 ax.set_ylim(yscale[:])
             else:
@@ -143,7 +141,7 @@ if __name__ == '__main__':
 
     ncfile = "netcdf/OS_PIRATA-FR31_CTD.nc"
     section(ncfile, ['PRES', 'TEMP'], 'LATITUDE', 5, 28, [
-            [0, 250], [250, 2000]], xinterp=10, yinterp=100, clevels=30, autoscale=[0, 30])
+            [0, 250], [250, 1000], [1000,2000]], xinterp=10, yinterp=100, clevels=30, autoscale=[0, 30])
     # section(ncfile, ['PRES','PSAL'], 'LATITUDE', 5, 28, [[0,250], [250,2000]],clevels=15,autoscale=[34,37])
     # section(ncfile, ['PRES','DOX2'], 'LATITUDE', 5, 28, [[0,250], [200,2000]],clevels=22,autoscale=[0,220])
     # section(ncfile, ['PRES','TEMP'], 'LATITUDE', 5, 28, [0,2000],clevels=30,autoscale=[0,30])
