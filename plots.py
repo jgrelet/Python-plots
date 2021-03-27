@@ -48,14 +48,9 @@ DEGREE = u"\u00B0"  # u"\N{DEGREE SIGN}"
 
 class Store_as_array(argparse._StoreAction):
     def __call__(self, parser, namespace, values, option_string=None):
-        #print(type(values))
-        #print(values)
         values = np.array(values)
         if len(values) == 4:
             values = np.array(values).reshape(2,2)
-        #print(type(values))
-        #print(len(values))
-        #print(values.ndim)
         return super().__call__(parser, namespace, values, option_string)
 
 def processArgs():
@@ -69,7 +64,6 @@ def processArgs():
         'SECTIONS:\n'
         'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s -k PRES TEMP -l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 200 --clevels=30 --autoscale 0 30\n'
         'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s -k PRES PSAL -l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 100 --clevels=15 --autoscale 34 37\n'
-        #section(ncfile, ['PRES','TEMP'], 'LATITUDE', 5, 28, [[0,250], [250,2000]],clevels=30,autoscale=[0,30])
  
         'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s DEPTH TEMP -a LATITUDE\n'
         ' \n',
