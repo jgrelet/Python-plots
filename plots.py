@@ -1,18 +1,5 @@
-
-r"""
-==========================
-Multiple Xaxis With Spines
-==========================
-
-Create multiple x axes with a shared y axis. This is done by creating
-a `~.axes.Axes.twiny` axes, turning all spines but the right one invisible
-and offset its position using `~.spines.Spine.set_position`.
-
-Note that this approach uses `matplotlib.axes.Axes` and their
-`~matplotlib.spines.Spine`\s. An alternative approach for parasite
-axes is shown in the :doc:`/gallery/axisartist/demo_parasite_axes` and
-:doc:`/gallery/axisartist/demo_parasite_axes2` examples.
-
+#!/home/science/miniconda3/bin/python
+"""
 This class allows you to plot any type of data from an OceanSites 
 profile file, either CTD, XBT or LADCP.
 
