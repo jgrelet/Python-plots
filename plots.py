@@ -297,20 +297,21 @@ class Plots():
             # them between the minimum and maximum data (approximately). 
             # If you want to have n levels between two specific values vmin and vmax 
             # you would need to supply those to the contouring function.
-            print(type(autoscale))
-            print(len(autoscale))
-            print(autoscale)
             if not isinstance(autoscale, list):
-                
+                sys.exit("autoscale: bad value <{}>, should be <0>, <1> or <0 30>".format(autoscale))
+            elif len(autoscale) == 2:    
                 zmin = autoscale[0]
                 zmax = autoscale[1]
             else:
-                if autoscale:
+                if autoscale[0] == 1:
                     zmin = np.min(z)
                     zmax = np.max(z)
-                else:
+                elif autoscale[0] == 0:
                     zmin = self.nc.variables[var].valid_min
                     zmax = self.nc.variables[var].valid_max
+                else:
+                    sys.exit("autoscale: bad value <{}>, should be <0>, <1> or <0 30>".format(autoscale[0]))
+
             levels = np.linspace(zmin,zmax,clevels+1)
             sublevels = np.linspace(zmin,zmax,round(clevels/5)+1)
 
