@@ -85,7 +85,7 @@ def processArgs():
     parser.add_argument('--xaxis',
                         choices=['LATITUDE', 'LONGITUDE', 'TIME'], default='TIME',
                         help='select xaxis for sections')
-    parser.add_argument('--yscale', action=Store_as_array, nargs='*', type=int, default=[0,1000],
+    parser.add_argument('--yscale', action=Store_as_array, nargs='*', type=int, default=np.asarray([0,1000]),
                         help='select vartical scale for sections, ex: [0,2000] or [[0,250],[250,2000]]')
     parser.add_argument('--xinterp', type=int, default=24,
                         help='horizontal interpolation')
