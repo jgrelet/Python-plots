@@ -10,7 +10,6 @@ Todos:
 - option --type is mandatory in command line
 - test if dir dest for png exist
 """
-import matplotlib.pyplot as plt
 from netCDF4 import Dataset
 import logging
 import argparse,textwrap
@@ -23,13 +22,14 @@ import ast
 from datetime import datetime
 import julian
 import math
+import numpy as np
+from scipy.interpolate import griddata
+import matplotlib.pyplot as plt
 import matplotlib.tri as tri
 import matplotlib.dates as mdates
 from matplotlib import (ticker, cm, gridspec)
 from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
                                 LatitudeLocator)
-import numpy as np
-from scipy import interpolate
 
 JULIAN = 33282
 DEGREE = u"\u00B0"  # u"\N{DEGREE SIGN}"
@@ -273,6 +273,7 @@ class Plots():
         profiles = self.nc.variables['PROFILE'][:].tolist()
         start = profiles.index(start)
         end = profiles.index(end) + 1
+        nbxi = end - start
         if xinterp > end - start:
             xinterp = end - start
         if xaxis == 'LATITUDE':
@@ -287,7 +288,7 @@ class Plots():
             x = self.nc.variables[xaxis][start:end]
             y = self.nc.variables[yaxis][start:end][:]
             z = self.nc.variables[var][start:end][:]
-            xi = np.linspace(x[0], x[-1], xinterp)
+            xi = np.linspace(x[0], x[-1], nbxi)
             yi = np.linspace(np.round(np.amin(y)), np.ceil(np.amax(y)), yinterp)
             
             # contourf indeed works a bit differently than other ScalarMappables.
@@ -316,8 +317,12 @@ class Plots():
                 zz = np.ma.masked_array(z[i]).filled(np.nan)
                 Z = np.interp(yi, yy, zz)
                 zi = np.append(zi, Z, axis=0)
-            zi = zi.reshape(xinterp, yinterp).transpose()
+            zi = zi.reshape(nbxi, yinterp)
 
+            xx, yy = np.meshgrid(xi, yi, indexing='ij')
+            xi = np.linspace(x[0], x[-1], xinterp)
+            zi = griddata((xx.ravel(), yy.ravel()), zi.ravel(),
+                      (xi[None, :], yi[:, None]))
             # Specifies the geometry of the grid that a subplot will be placed
             fig = plt.figure(figsize=(8, 8))
             if yscale.ndim == 2:
