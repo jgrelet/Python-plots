@@ -93,7 +93,8 @@ def processArgs():
                         help='vertical interpolation')
     parser.add_argument('--clevels', type=int, default=20,
                         help='contour levels')
-    parser.add_argument('--autoscale', action=Store_as_array, nargs='*', type=int, default=True,
+    #parser.add_argument('--autoscale', action=Store_as_array, nargs='*', type=int, default=True,
+    parser.add_argument('--autoscale', nargs='*', type=int, default=True,
                         help= textwrap.dedent('''\
         None:       use NetCDF valid min and max
         True:       use min(Z) and max(Z)
@@ -296,7 +297,11 @@ class Plots():
             # them between the minimum and maximum data (approximately). 
             # If you want to have n levels between two specific values vmin and vmax 
             # you would need to supply those to the contouring function.
-            if isinstance(autoscale,list):
+            print(type(autoscale))
+            print(len(autoscale))
+            print(autoscale)
+            if not isinstance(autoscale, list):
+                
                 zmin = autoscale[0]
                 zmax = autoscale[1]
             else:
@@ -434,6 +439,6 @@ if __name__ == '__main__':
     # autoscale=True
     if args.sections:
         p.section(start, end, args.xaxis,args.yscale,args.xinterp,args.yinterp,
-        args.clevels)
+        args.clevels, args.autoscale)
 
     print('Done.')
