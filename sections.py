@@ -34,7 +34,7 @@ def p(name, v):
 
 
 def section(ncfile, parameters, xaxis, start, end, yscale,
-            xinterp=20, yinterp=200, clevels=20, autoscale=True):
+            xinterp=20, yinterp=200, clevels=20, autoscale=True, marks=True):
 
     # Read ctd data
     nc = Dataset(ncfile, "r")
@@ -128,6 +128,12 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
             ax.clabel(cs, inline=True, fmt='%3.1f', fontsize=8)
             ax.set_xticks(np.arange(np.round(np.min(x)), np.ceil(np.max(x))))
             ax.xaxis.set_major_formatter(x_formatter)
+            # ax2 = ax.twiny()
+            # ax2.spines["top"].set_position(("axes", 1.0))
+            # print(profiles[start:end])
+            # ax2.set_xlim(33,45)
+            # ax2.set_xticklabels(profiles[start:end])
+            #ax2.xaxis.set_major_formatter(profiles[start:end])
 
         # Matplotlib 2 Subplots, 1 Colorbar
         # https://stackoverflow.com/questions/13784201/matplotlib-2-subplots-1-colorbar
@@ -156,7 +162,7 @@ if __name__ == '__main__':
     # section(ncfile, ['DEPTH', 'EWCT'], 'LATITUDE', 5, 28, [[0, 250], [
     #         250, 2200]], xinterp=24, yinterp=200, clevels=30, autoscale=False)
     # section(ncfile, ['DEPTH','EWCT', 'NSCT'], 'LATITUDE', 5, 28, [0,2200])
-    section(ncfile, ['DEPTH', 'EWCT','NSCT'], 'TIME', 33, 45, [0, 500], 
+    section(ncfile, ['DEPTH', 'EWCT'], 'TIME', 33, 45, [0, 500], 
         xinterp=20, yinterp=100, clevels=15, autoscale=[-150,150])
     
     ncfile = "netcdf/OS_PIRATA-FR31_XBT.nc"

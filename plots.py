@@ -365,11 +365,9 @@ class Plots():
                 self.nc.variables[yaxis].units)
             # display common y label with text instead of ax.set_ylabel    
             fig.text(0.04, 0.5, ylabel, va='center', ha='center', rotation='vertical')
-            #plt.show()
             figname = '{}-section-{}-{}.png'.format(
                 self.nc.cycle_mesure, self.type, var)
             dest = os.path.join(path, figname)
-            print(dest)
             fig.savefig(dest)
             print('Printing: ', dest)
             plt.close(fig)
