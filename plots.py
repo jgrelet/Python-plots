@@ -24,7 +24,8 @@ from datetime import datetime
 import julian
 import math
 import matplotlib.tri as tri
-from matplotlib import (ticker, cm)
+import matplotlib.dates as mdates
+from matplotlib import (ticker, cm, gridspec)
 from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
                                 LatitudeLocator)
 import numpy as np
@@ -51,8 +52,9 @@ def processArgs():
         'SECTIONS:\n'
         'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s -k PRES TEMP -l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 200 --clevels=30 --autoscale 0 30\n'
         'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s -k PRES PSAL -l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 100 --clevels=15 --autoscale 34 37\n'
- 
+        'python plots.py netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP -s -k DEPTH EWCT NSCT -l 33 45 --xaxis TIME --yscale 0 500 --xinterp 20 --yinterp 50 --clevels 15 --autoscale -150 150\n'
         'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s DEPTH TEMP -a LATITUDE\n'
+        'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s DEPTH TEMP -a TIME -l 29 36\n'
         ' \n',
         formatter_class=argparse.RawTextHelpFormatter,
         epilog='J. Grelet IRD US191 - March 2021 / April 2021')
@@ -273,6 +275,12 @@ class Plots():
         end = profiles.index(end) + 1
         if xinterp > end - start:
             xinterp = end - start
+        if xaxis == 'LATITUDE':
+            x_formatter = LatitudeFormatter()
+        elif xaxis == 'LONGITUDE':
+            x_formatter = LongitudeFormatter()
+        else:
+            x_formatter = mdates.DateFormatter('%m/%d')
 
         for k in range(1, len(self.keys)):
             var   = self.keys[k]
@@ -310,26 +318,34 @@ class Plots():
                 zi = np.append(zi, Z, axis=0)
             zi = zi.reshape(xinterp, yinterp).transpose()
 
-            # plot contour(s)
-            fig, ax = plt.subplots(yscale.ndim,1, sharex=True, squeeze=False)
-            fig.axes[0].set_title('{}\n{}, {} [{}]'.format(self.nc.cycle_mesure, var, 
-                self.nc.variables[var].long_name, self.nc.variables[var].units))
+            # Specifies the geometry of the grid that a subplot will be placed
+            fig = plt.figure(figsize=(8, 8))
+            if yscale.ndim == 2:
+                ratio = [1, yscale.ndim]
+            else:
+                ratio = None
             # loop over vertical range, ex: [0,2000] or [[0,250], [250,2000]]
-            for i, ax in enumerate(fig.axes):
+            gs = gridspec.GridSpec(yscale.ndim, 1, height_ratios=ratio)# loop over vertical range, ex: [0,2000] or [[0,250], [250,2000]]
+            for i, ax in enumerate(gs):
+                ax = plt.subplot(gs[i])
+                if i == 0:
+                    ax.set_title('{}\n{}, {} [{}]'.format(self.nc.cycle_mesure, var,
+                        self.nc.variables[var].long_name, self.nc.variables[var].units))
+
                 if yscale.ndim == 1:
                     ax.set_ylim(yscale[:])
                 else:
                     ax.set_ylim(yscale[i])
                 ax.invert_yaxis()
+                # plot contour(s)
                 plt1 = ax.contourf(xi, yi, zi, levels=levels, vmin=zmin, vmax=zmax,
                     cmap='jet', extend='neither')
                 cs = ax.contour(xi, yi, zi, plt1.levels, colors='black', linewidths=0.5)
                 cs = ax.contour(xi, yi, zi, sublevels, colors='black', linewidths=1.5)
                 ax.clabel(cs, inline=True, fmt='%3.1f', fontsize=8)
                 # add test for LONGITUDE and TIME 
-                lat_formatter = LatitudeFormatter()
                 ax.set_xticks(np.arange(np.round(np.min(x)),np.ceil(np.max(x))))
-                ax.xaxis.set_major_formatter(lat_formatter)
+                ax.xaxis.set_major_formatter(x_formatter)
 
             # Matplotlib 2 Subplots, 1 Colorbar
             # https://stackoverflow.com/questions/13784201/matplotlib-2-subplots-1-colorbar
