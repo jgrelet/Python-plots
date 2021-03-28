@@ -97,17 +97,15 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
 
         # plot contour(s)
         #fig, ax = plt.subplots(yscale.ndim, 1, sharex=True, squeeze=False)
-        fig = plt.figure(figsize=(6,8)) 
+        fig = plt.figure(figsize=(8,8)) 
         gs = gridspec.GridSpec(yscale.ndim, 1, height_ratios=[1,yscale.ndim]) 
-        #fig.axes[0].set_title('{}\n{}, {} [{}]'.format(nc.cycle_mesure, var,
-        #                                               nc.variables[var].long_name, nc.variables[var].units))
-        ax = plt.subplot(gs[0])
-        ax.set_title('{}\n{}, {} [{}]'.format(nc.cycle_mesure, var,
-                            nc.variables[var].long_name, nc.variables[var].units))
         
         # loop over vertical range, ex: [0,2000] or [[0,250], [250,2000]]
         for i, ax in enumerate(gs):
             ax = plt.subplot(gs[i])
+            if i == 0:
+                ax.set_title('{}\n{}, {} [{}]'.format(nc.cycle_mesure, var,
+                            nc.variables[var].long_name, nc.variables[var].units))
             if yscale.ndim == 1:
                 ax.set_ylim(yscale[:])
             else:
@@ -125,6 +123,7 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
             ax.set_xticks(np.arange(np.round(np.min(x)), np.ceil(np.max(x))))
             ax.xaxis.set_major_formatter(lat_formatter)
 
+
         # Matplotlib 2 Subplots, 1 Colorbar
         # https://stackoverflow.com/questions/13784201/matplotlib-2-subplots-1-colorbar
         plt.colorbar(plt1, ax=fig.axes)
@@ -141,12 +140,13 @@ if __name__ == '__main__':
 
     ncfile = "netcdf/OS_PIRATA-FR31_CTD.nc"
     section(ncfile, ['PRES', 'TEMP'], 'LATITUDE', 5, 28, [
-            [0, 250], [250, 1000], [1000,2000]], xinterp=10, yinterp=100, clevels=30, autoscale=[0, 30])
+            [0, 250], [250, 1000], [1000,2000]], xinterp=20, yinterp=200, clevels=30, autoscale=[0, 30])
     # section(ncfile, ['PRES','PSAL'], 'LATITUDE', 5, 28, [[0,250], [250,2000]],clevels=15,autoscale=[34,37])
     # section(ncfile, ['PRES','DOX2'], 'LATITUDE', 5, 28, [[0,250], [200,2000]],clevels=22,autoscale=[0,220])
     # section(ncfile, ['PRES','TEMP'], 'LATITUDE', 5, 28, [0,2000],clevels=30,autoscale=[0,30])
-    # # ncfile = "netcdf/OS_PIRATA-FR31_ADCP.nc"
-    # section(ncfile, ['DEPTH','EWCT'], 'LATITUDE', 5, 28, [[0,250], [250,2200]], clevels=30, autoscale=False)
+    ncfile = "netcdf/OS_PIRATA-FR31_ADCP.nc"
+    section(ncfile, ['DEPTH','EWCT'], 'LATITUDE', 5, 28, [[0,250], [250,2200]], xinterp=24, yinterp=200, clevels=30, autoscale=False)
     # section(ncfile, ['DEPTH','EWCT', 'NSCT'], 'LATITUDE', 5, 28, [0,2200])
-    # ncfile = "netcdf/OS_PIRATA-FR31_XBT.nc"
-    # section(ncfile, ['DEPTH','TEMP'], 'LATITUDE', 29, 36, [[0,250], [250,900]],clevels=30,autoscale=[0,30])
+    ncfile = "netcdf/OS_PIRATA-FR31_XBT.nc"
+    section(ncfile, ['DEPTH','TEMP'], 'LATITUDE', 29, 36, [[0,250], [250,900]],clevels=30,autoscale=[0,30])
+    section(ncfile, ['DEPTH','TEMP'], 'LATITUDE', 29, 36, [0,900],clevels=30,autoscale=[0,30])
