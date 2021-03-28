@@ -53,8 +53,8 @@ def processArgs():
         'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s -k PRES TEMP -l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 200 --clevels=30 --autoscale 0 30\n'
         'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s -k PRES PSAL -l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 100 --clevels=15 --autoscale 34 37\n'
         'python plots.py netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP -s -k DEPTH EWCT NSCT -l 33 45 --xaxis TIME --yscale 0 500 --xinterp 20 --yinterp 50 --clevels 15 --autoscale -150 150\n'
-        'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s DEPTH TEMP -a LATITUDE\n'
-        'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s DEPTH TEMP -a TIME -l 29 36\n'
+        'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s DEPTH TEMP -xaxis LATITUDE\n'
+        'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s DEPTH TEMP -xaxis TIME -l 29 36\n'
         ' \n',
         formatter_class=argparse.RawTextHelpFormatter,
         epilog='J. Grelet IRD US191 - March 2021 / April 2021')
@@ -83,9 +83,9 @@ def processArgs():
                         action='store_true',
                         help='plot sections')
     parser.add_argument('--xaxis',
-                        choices=['LATITUDE', 'LONGITUDE', 'TIME'],
+                        choices=['LATITUDE', 'LONGITUDE', 'TIME'], default='TIME',
                         help='select xaxis for sections')
-    parser.add_argument('--yscale', action=Store_as_array, nargs='*', type=int,
+    parser.add_argument('--yscale', action=Store_as_array, nargs='*', type=int, default=[0,1000],
                         help='select vartical scale for sections, ex: [0,2000] or [[0,250],[250,2000]]')
     parser.add_argument('--xinterp', type=int, default=24,
                         help='horizontal interpolation')
@@ -93,8 +93,7 @@ def processArgs():
                         help='vertical interpolation')
     parser.add_argument('--clevels', type=int, default=20,
                         help='contour levels')
-    #parser.add_argument('--autoscale', action=Store_as_array, nargs='*', type=int, default=True,
-    parser.add_argument('--autoscale', nargs='*', type=int, default=True,
+    parser.add_argument('--autoscale', nargs='*', type=int, default=[0],
                         help= textwrap.dedent('''\
         None:       use NetCDF valid min and max
         True:       use min(Z) and max(Z)
@@ -266,7 +265,7 @@ class Plots():
 
     # plot one or more sections
     def section(self, start, end, xaxis, yscale,
-    xinterp=24, yinterp=200, clevels=20, autoscale=True):
+    xinterp=24, yinterp=200, clevels=20, autoscale=0):
 
         # Y variable, PRES or DEPTH, must be first, add test
         yaxis = self.keys[0]
@@ -298,7 +297,7 @@ class Plots():
             # If you want to have n levels between two specific values vmin and vmax 
             # you would need to supply those to the contouring function.
             if not isinstance(autoscale, list):
-                sys.exit("autoscale: bad value <{}>, should be <0>, <1> or <0 30>".format(autoscale))
+                sys.exit("autoscale: bad type {}, value <{}>, should be an integer <0>, <1> or <0 30>".format(type(autoscale), autoscale))
             elif len(autoscale) == 2:    
                 zmin = autoscale[0]
                 zmax = autoscale[1]
