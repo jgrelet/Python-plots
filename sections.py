@@ -53,7 +53,7 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
         xinterp = end - start
     yinterp = 200
     # add test for LONGITUDE and TIME
-    if xaxis == 'LATIDUDE':
+    if xaxis == 'LATITUDE':
         x_formatter = LatitudeFormatter()
     elif xaxis == 'LONGITUDE':
         x_formatter = LongitudeFormatter()
@@ -158,7 +158,7 @@ if __name__ == '__main__':
     # section(ncfile, ['DEPTH', 'EWCT'], 'LATITUDE', 5, 28, [[0, 250], [
     #         250, 2200]], xinterp=24, yinterp=200, clevels=30, autoscale=False)
     # section(ncfile, ['DEPTH','EWCT', 'NSCT'], 'LATITUDE', 5, 28, [0,2200])
-    section(ncfile, ['DEPTH', 'EWCT','NSCT'], 'TIME', 33, 43, [0, 500], 
+    section(ncfile, ['DEPTH', 'EWCT','NSCT'], 'TIME', 33, 45, [0, 500], 
         xinterp=16, yinterp=50, clevels=15, autoscale=[-150,150])
     
     ncfile = "netcdf/OS_PIRATA-FR31_XBT.nc"
