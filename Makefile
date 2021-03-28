@@ -10,9 +10,9 @@ SECT_ADCP = netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP -s -k DEPTH EWCT NSCT -l 28 32
 PROF_XBT = netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -p -k DEPTH TEMP DENS SVEL -c k- b- k- g- -g -l 1 5
 SECT_XBT = netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s DEPTH TEMP --xaxis LATITUDE -l 5 10
 
-.PHONY: clean-pyc clean-build lint test run build
+.PHONY: clean-pyc clean-build clean lint test run build
 
-clean-all:  clean-pyc clean-build clean-png
+clean-all:  clean-pyc clean-build clean
 
 clean-pyc:
 	find . -name '*.pyc' -exec rm --force {} +
@@ -23,9 +23,9 @@ clean-build:
 	rm --force --recursive dist/
 	rm --force --recursive __pycache__/
 
-clean-png:
-	rm --force --recursive plots/
-	rm --force --recursive sections/
+clean:
+	ls plots/*
+	rm sections/*
 
 lint:
 	$(PYLINT) --exclude=.tox
