@@ -51,7 +51,6 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
 
     if xinterp > end - start:
         xinterp = end - start
-    yinterp = 200
     # add test for LONGITUDE and TIME
     if xaxis == 'LATITUDE':
         x_formatter = LatitudeFormatter()
@@ -94,7 +93,6 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
             zz = np.ma.masked_array(z[i]).filled(np.nan)
             Z = np.interp(yi, yy, zz)
             zi = np.append(zi, Z, axis=0)
-        #zi = zi.reshape(nbxi, yinterp).transpose()
         zi = zi.reshape(nbxi, yinterp)
 
         xx, yy = np.meshgrid(xi, yi, indexing='ij')
@@ -159,7 +157,7 @@ if __name__ == '__main__':
     #         250, 2200]], xinterp=24, yinterp=200, clevels=30, autoscale=False)
     # section(ncfile, ['DEPTH','EWCT', 'NSCT'], 'LATITUDE', 5, 28, [0,2200])
     section(ncfile, ['DEPTH', 'EWCT','NSCT'], 'TIME', 33, 45, [0, 500], 
-        xinterp=16, yinterp=50, clevels=15, autoscale=[-150,150])
+        xinterp=20, yinterp=100, clevels=15, autoscale=[-150,150])
     
     ncfile = "netcdf/OS_PIRATA-FR31_XBT.nc"
     # section(ncfile, ['DEPTH', 'TEMP'], 'LATITUDE', 29, 36, [
