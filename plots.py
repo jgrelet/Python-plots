@@ -73,7 +73,7 @@ def processArgs():
                         action='store_true',
                         help='plot profiles')
     parser.add_argument('-k', '--keys',
-                       nargs='+',
+                        nargs='+',
                         help='select physical parameters key(s), (default: %(default)s)')
     parser.add_argument('-l', '--list',
                         nargs='+', type=int,
@@ -265,7 +265,7 @@ class Plots():
                                   self.nc.variables['LONGITUDE'][index], 'W'),
                               va='center', rotation='horizontal'))
         # plt.show()
-		sep = "_" if self.append else ""  
+        sep = "_" if self.append else ""
         figname = '{}-{:03d}_{}{}{}.png'.format(
             self.nc.cycle_mesure, profile, self.type, sep, self.append)
         dest = os.path.join(path, figname)
@@ -381,7 +381,7 @@ class Plots():
             # display common y label with text instead of ax.set_ylabel
             fig.text(0.04, 0.5, ylabel, va='center',
                      ha='center', rotation='vertical')
-			sep = "_" if self.append else ""
+            sep = "_" if self.append else ""
             figname = '{}-section-{}-{}{}{}.png'.format(
                 self.nc.cycle_mesure, self.type, var, sep, self.append)
             dest = os.path.join(path, figname)
@@ -454,4 +454,3 @@ if __name__ == '__main__':
     if args.sections:
         p.section(start, end, args.xaxis, args.yscale, args.xinterp, args.yinterp,
                   args.clevels, args.autoscale)
-
