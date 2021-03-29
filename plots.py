@@ -184,6 +184,7 @@ class Plots():
         self.fig.subplots_adjust(top=0.95-((len(self.keys)-1)*0.06))
         offset = 0.14
         tkw = dict(size=4, width=1.5)
+        
         # find the profile index
         profiles = self.nc.variables['PROFILE'][:].tolist()
         try:
@@ -210,6 +211,7 @@ class Plots():
         self.ax.tick_params(axis='y', **tkw)
 
         position = 'bottom'
+
         # loop over the last parameters
         for k in range(2, len(self.keys)):
             i = k-2
@@ -240,8 +242,10 @@ class Plots():
             par.xaxis.label.set_color(p.get_color())
             par.tick_params(axis='x', colors=p.get_color(), **tkw)
 
+        # add grid on plot
         if(self.grid):
             self.ax.grid()
+
         #self.ax.legend(lines, [l.get_label() for l in lines])
         self.fig.text(0.15, 0.95,
                       '{}, {}, Profile: {:03d} Date: {} Lat: {} Long: {}'
@@ -314,7 +318,7 @@ class Plots():
             levels = np.linspace(zmin,zmax,clevels+1)
             sublevels = np.linspace(zmin,zmax,round(clevels/5)+1)
 
-            # interpolate
+            # verticale interpolation
             zi = np.array(([]))
             for i in range(0, len(z)):
                 # convert fill_value from Dataset to numpy
@@ -323,29 +327,25 @@ class Plots():
                 Z = np.interp(yi, yy, zz)
                 zi = np.append(zi, Z, axis=0)
             zi = zi.reshape(nbxi, yinterp)
-
+            # horizontal interpolation
             xx, yy = np.meshgrid(xi, yi, indexing='ij')
             xi = np.linspace(x[0], x[-1], xinterp)
             zi = griddata((xx.ravel(), yy.ravel()), zi.ravel(),
                       (xi[None, :], yi[:, None]))
             # Specifies the geometry of the grid that a subplot will be placed
             fig = plt.figure(figsize=(8, 8))
-            if yscale.ndim == 2:
-                ratio = [1, yscale.ndim]
-            else:
-                ratio = None
-            # loop over vertical range, ex: [0,2000] or [[0,250], [250,2000]]
+            # set gridspec ration, one or two subplots 
+            ratio = [1, yscale.ndim] if yscale.ndim == 2 else None
             gs = gridspec.GridSpec(yscale.ndim, 1, height_ratios=ratio)# loop over vertical range, ex: [0,2000] or [[0,250], [250,2000]]
+
+            # loop over vertical range, ex: [0,2000] or [[0,250], [250,2000]]
             for i, ax in enumerate(gs):
                 ax = plt.subplot(gs[i])
                 if i == 0:
                     ax.set_title('{}\n{}, {} [{}]'.format(self.nc.cycle_mesure, var,
                         self.nc.variables[var].long_name, self.nc.variables[var].units))
-
-                if yscale.ndim == 1:
-                    ax.set_ylim(yscale[:])
-                else:
-                    ax.set_ylim(yscale[i])
+                # set vertical axes
+                ax.set_ylim(yscale[:]) if yscale.ndim == 1 else ax.set_ylim(yscale[i])
                 ax.invert_yaxis()
                 # plot contour(s)
                 plt1 = ax.contourf(xi, yi, zi, levels=levels, vmin=zmin, vmax=zmax,
@@ -363,6 +363,7 @@ class Plots():
             ax.set_xlabel('{}'.format(self.nc.variables[xaxis].standard_name))
             ylabel = '{} [{}]'.format(self.nc.variables[yaxis].standard_name,
                 self.nc.variables[yaxis].units)
+
             # display common y label with text instead of ax.set_ylabel    
             fig.text(0.04, 0.5, ylabel, va='center', ha='center', rotation='vertical')
             figname = '{}-section-{}-{}.png'.format(

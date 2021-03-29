@@ -101,10 +101,7 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
                       (xi[None, :], yi[:, None]))
         # Specifies the geometry of the grid that a subplot will be placed
         fig = plt.figure(figsize=(8, 8))
-        if yscale.ndim == 2:
-            ratio = [1, yscale.ndim]
-        else:
-            ratio = None
+        ratio = [1, yscale.ndim] if yscale.ndim == 2 else None
         gs = gridspec.GridSpec(yscale.ndim, 1, height_ratios=ratio)
 
         # loop over vertical range, ex: [0,2000] or [[0,250], [250,2000]]
@@ -113,10 +110,7 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
             if i == 0:
                 ax.set_title('{}\n{}, {} [{}]'.format(nc.cycle_mesure, var,
                                                       nc.variables[var].long_name, nc.variables[var].units))
-            if yscale.ndim == 1:
-                ax.set_ylim(yscale[:])
-            else:
-                ax.set_ylim(yscale[i])
+            ax.set_ylim(yscale[:]) if yscale.ndim == 1 else ax.set_ylim(yscale[i])
             ax.invert_yaxis()
             # plot contour(s)
             plt1 = ax.contourf(xi, yi, zi, levels=levels, vmin=zmin, vmax=zmax,
@@ -162,7 +156,7 @@ if __name__ == '__main__':
     # section(ncfile, ['DEPTH', 'EWCT'], 'LATITUDE', 5, 28, [[0, 250], [
     #         250, 2200]], xinterp=24, yinterp=200, clevels=30, autoscale=False)
     # section(ncfile, ['DEPTH','EWCT', 'NSCT'], 'LATITUDE', 5, 28, [0,2200])
-    section(ncfile, ['DEPTH', 'EWCT'], 'TIME', 33, 45, [0, 500], 
+    section(ncfile, ['DEPTH', 'EWCT'], 'TIME', 33, 45, [[0, 200], [200,500]], 
         xinterp=20, yinterp=100, clevels=15, autoscale=[-150,150])
     
     ncfile = "netcdf/OS_PIRATA-FR31_XBT.nc"
