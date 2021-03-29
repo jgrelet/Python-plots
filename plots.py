@@ -5,10 +5,9 @@ profile file, either CTD, XBT or LADCP.
 
 Todos:
 - add the date/time and position in the title of the figure.
-- configure the choice of colors, .toml file of the cruise, max depth scale, etc.
 - display the figure on screen (command line option)
-- option --type is mandatory in command line
-- test if dir dest for png exist
+- add exclude args option for bad profiles
+- check interpolation when y is not equal
 """
 from netCDF4 import Dataset
 import logging
