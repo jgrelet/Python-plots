@@ -4,11 +4,11 @@ PYTHON = python
 PYLINT = pylint
 TEST_PATH = tests
 PROF_CTD = netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -p -k PRES TEMP PSAL DOX2 FLU2 -g -c k- b- r- m- g- -g -l 5 9
-SECT_CTD = netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s -k PRES TEMP --xaxis LATITUDE -l 5 22 --yscale 0 250 250 2000 --xinterp 24 --yinterp 200 --clevels=30 --autoscale 0 30
+SECT_CTD = netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s --append 1N-10W_10S_10W -k PRES TEMP --xaxis LATITUDE -l 5 22 --yscale 0 250 250 2000 --xinterp 24 --yinterp 200 --clevels=30 --autoscale 0 30
 PROF_ADCP = netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP -p -k DEPTH EWCT NSCT -c k- r- b- -g -l 28 32
 SECT_ADCP = netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP -s -k DEPTH EWCT NSCT -l 33 45 --xaxis TIME --yscale 0 500 --xinterp 20 --yinterp 50 --clevels 30 --autoscale -150 150
 PROF_XBT = netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -p -k DEPTH TEMP DENS SVEL -c k- b- k- g- -g -l 1 5
-SECT_XBT = netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s -k DEPTH TEMP --xaxis TIME -l 29 36 --yscale 0 900
+SECT_XBT = netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s --append point-fixe_0-10W -k DEPTH TEMP --xaxis TIME -l 29 36 --yscale 0 900
 SECT2_XBT = netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s -k DEPTH TEMP --xaxis LONGITUDE -l 39 46 --yscale 0 900
 
 .PHONY: clean-pyc clean-build clean lint test run build

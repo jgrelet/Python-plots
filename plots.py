@@ -12,7 +12,8 @@ Todos:
 """
 from netCDF4 import Dataset
 import logging
-import argparse,textwrap
+import argparse
+import textwrap
 import os
 import sys
 import re
@@ -34,12 +35,14 @@ from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
 JULIAN = 33282
 DEGREE = u"\u00B0"  # u"\N{DEGREE SIGN}"
 
+
 class Store_as_array(argparse._StoreAction):
     def __call__(self, parser, namespace, values, option_string=None):
         values = np.array(values)
         if len(values) == 4:
-            values = np.array(values).reshape(2,2)
+            values = np.array(values).reshape(2, 2)
         return super().__call__(parser, namespace, values, option_string)
+
 
 def processArgs():
     parser = argparse.ArgumentParser(
@@ -51,8 +54,8 @@ def processArgs():
         'python plots.py netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP -p -k DEPTH EWCT NSCT -c k- r- b- -g\n'
         'SECTIONS:\n'
         'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s -k PRES TEMP -l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 200 --clevels=30 --autoscale 0 30\n'
-        'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s -k PRES PSAL -l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 100 --clevels=15 --autoscale 34 37\n'
-        'python plots.py netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP -s -k DEPTH EWCT NSCT -l 33 45 --xaxis TIME --yscale 0 500 --xinterp 20 --yinterp 50 --clevels 15 --autoscale -150 150\n'
+        'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s --append 1N-10W_10S_10W -k PRES PSAL -l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 100 --clevels=15 --autoscale 34 37\n'
+        'python plots.py netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP -s --append point-fixe_0-10W -k DEPTH EWCT NSCT -l 33 45 --xaxis TIME --yscale 0 500 --xinterp 20 --yinterp 50 --clevels 15 --autoscale -150 150\n'
         'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s DEPTH TEMP -xaxis LATITUDE\n'
         'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s DEPTH TEMP -xaxis TIME -l 29 36\n'
         ' \n',
@@ -60,6 +63,8 @@ def processArgs():
         epilog='J. Grelet IRD US191 - March 2021 / April 2021')
     parser.add_argument('files',
                         help='netcdf file to parse')
+    parser.add_argument('-a', '--append',
+                        help='string to append in output filename')
     parser.add_argument('-t', '--type',
                         choices=['CTD', 'XBT', 'ADCP'],
                         required=True,
@@ -79,13 +84,13 @@ def processArgs():
     parser.add_argument('-g', '--grid',
                         action='store_true',
                         help='add grid')
-    parser.add_argument('-s', '--sections', 
+    parser.add_argument('-s', '--sections',
                         action='store_true',
                         help='plot sections')
     parser.add_argument('--xaxis',
                         choices=['LATITUDE', 'LONGITUDE', 'TIME'], default='TIME',
                         help='select xaxis for sections')
-    parser.add_argument('--yscale', action=Store_as_array, nargs='*', type=int, default=np.asarray([0,1000]),
+    parser.add_argument('--yscale', action=Store_as_array, nargs='*', type=int, default=np.asarray([0, 1000]),
                         help='select vartical scale for sections, ex: [0,2000] or [[0,250],[250,2000]]')
     parser.add_argument('--xinterp', type=int, default=24,
                         help='horizontal interpolation')
@@ -94,7 +99,7 @@ def processArgs():
     parser.add_argument('--clevels', type=int, default=20,
                         help='contour levels')
     parser.add_argument('--autoscale', nargs='*', type=int, default=[0],
-                        help= textwrap.dedent('''\
+                        help=textwrap.dedent('''\
         None:       use NetCDF valid min and max
         True:       use min(Z) and max(Z)
         [min, max]: define manually min and max'''))
@@ -157,13 +162,13 @@ def Dec2dms(position, hemi):
 
 
 class Plots():
-    def __init__(self, file, keys, ti, colors, grid=False):
+    def __init__(self, file, keys, ti, colors, append, grid=False):
         self.nc = Dataset(file, mode='r')
-        # private:
         self.keys = keys
         self.colors = colors
         self.type = ti
         self.grid = grid
+        self.append = append
         self.fig = None
         self.ax = None
 
@@ -184,14 +189,14 @@ class Plots():
         self.fig.subplots_adjust(top=0.95-((len(self.keys)-1)*0.06))
         offset = 0.14
         tkw = dict(size=4, width=1.5)
-        
+
         # find the profile index
         profiles = self.nc.variables['PROFILE'][:].tolist()
         try:
             index = profiles.index(profile)
         except:
             print('Profile {} is missing'.format(profile))
-            return    
+            return
 
         # the first plot with the first parameter, DEPTH or PRES
         y = self.nc.variables[self.keys[0]][index, :]
@@ -260,8 +265,8 @@ class Plots():
                                   self.nc.variables['LONGITUDE'][index], 'W'),
                               va='center', rotation='horizontal'))
         # plt.show()
-        figname = '{}-{:03d}_{}.png'.format(
-            self.nc.cycle_mesure, profile, self.type)
+        figname = '{}-{:03d}_{}_{}.png'.format(
+            self.nc.cycle_mesure, profile, self.type, self.append)
         dest = os.path.join(path, figname)
         self.fig.savefig(dest)
         print('Printing: ', dest)
@@ -269,7 +274,7 @@ class Plots():
 
     # plot one or more sections
     def section(self, start, end, xaxis, yscale,
-    xinterp=24, yinterp=200, clevels=20, autoscale=0):
+                xinterp=24, yinterp=200, clevels=20, autoscale=0):
 
         # Y variable, PRES or DEPTH, must be first, add test
         yaxis = self.keys[0]
@@ -288,21 +293,23 @@ class Plots():
             x_formatter = mdates.DateFormatter('%m/%d')
 
         for k in range(1, len(self.keys)):
-            var   = self.keys[k]
+            var = self.keys[k]
             x = self.nc.variables[xaxis][start:end]
             y = self.nc.variables[yaxis][start:end][:]
             z = self.nc.variables[var][start:end][:]
             xi = np.linspace(x[0], x[-1], nbxi)
-            yi = np.linspace(np.round(np.amin(y)), np.ceil(np.amax(y)), yinterp)
-            
+            yi = np.linspace(np.round(np.amin(y)),
+                             np.ceil(np.amax(y)), yinterp)
+
             # contourf indeed works a bit differently than other ScalarMappables.
-            # If you specify the number of levels (20 in this case) it will take 
-            # them between the minimum and maximum data (approximately). 
-            # If you want to have n levels between two specific values vmin and vmax 
+            # If you specify the number of levels (20 in this case) it will take
+            # them between the minimum and maximum data (approximately).
+            # If you want to have n levels between two specific values vmin and vmax
             # you would need to supply those to the contouring function.
             if not isinstance(autoscale, list):
-                sys.exit("autoscale: bad type {}, value <{}>, should be an integer <0>, <1> or <0 30>".format(type(autoscale), autoscale))
-            elif len(autoscale) == 2:    
+                sys.exit("autoscale: bad type {}, value <{}>, should be an integer <0>, <1> or <0 30>".format(
+                    type(autoscale), autoscale))
+            elif len(autoscale) == 2:
                 zmin = autoscale[0]
                 zmax = autoscale[1]
             else:
@@ -313,10 +320,11 @@ class Plots():
                     zmin = self.nc.variables[var].valid_min
                     zmax = self.nc.variables[var].valid_max
                 else:
-                    sys.exit("autoscale: bad value <{}>, should be <0>, <1> or <0 30>".format(autoscale[0]))
+                    sys.exit(
+                        "autoscale: bad value <{}>, should be <0>, <1> or <0 30>".format(autoscale[0]))
 
-            levels = np.linspace(zmin,zmax,clevels+1)
-            sublevels = np.linspace(zmin,zmax,round(clevels/5)+1)
+            levels = np.linspace(zmin, zmax, clevels+1)
+            sublevels = np.linspace(zmin, zmax, round(clevels/5)+1)
 
             # verticale interpolation
             zi = np.array(([]))
@@ -331,30 +339,35 @@ class Plots():
             xx, yy = np.meshgrid(xi, yi, indexing='ij')
             xi = np.linspace(x[0], x[-1], xinterp)
             zi = griddata((xx.ravel(), yy.ravel()), zi.ravel(),
-                      (xi[None, :], yi[:, None]))
+                          (xi[None, :], yi[:, None]))
             # Specifies the geometry of the grid that a subplot will be placed
             fig = plt.figure(figsize=(8, 8))
-            # set gridspec ration, one or two subplots 
+            # set gridspec ration, one or two subplots
             ratio = [1, yscale.ndim] if yscale.ndim == 2 else None
-            gs = gridspec.GridSpec(yscale.ndim, 1, height_ratios=ratio)# loop over vertical range, ex: [0,2000] or [[0,250], [250,2000]]
+            # loop over vertical range, ex: [0,2000] or [[0,250], [250,2000]]
+            gs = gridspec.GridSpec(yscale.ndim, 1, height_ratios=ratio)
 
             # loop over vertical range, ex: [0,2000] or [[0,250], [250,2000]]
             for i, ax in enumerate(gs):
                 ax = plt.subplot(gs[i])
                 if i == 0:
                     ax.set_title('{}\n{}, {} [{}]'.format(self.nc.cycle_mesure, var,
-                        self.nc.variables[var].long_name, self.nc.variables[var].units))
+                                                          self.nc.variables[var].long_name, self.nc.variables[var].units))
                 # set vertical axes
-                ax.set_ylim(yscale[:]) if yscale.ndim == 1 else ax.set_ylim(yscale[i])
+                ax.set_ylim(yscale[:]) if yscale.ndim == 1 else ax.set_ylim(
+                    yscale[i])
                 ax.invert_yaxis()
                 # plot contour(s)
                 plt1 = ax.contourf(xi, yi, zi, levels=levels, vmin=zmin, vmax=zmax,
-                    cmap='jet', extend='neither')
-                cs = ax.contour(xi, yi, zi, plt1.levels, colors='black', linewidths=0.5)
-                cs = ax.contour(xi, yi, zi, sublevels, colors='black', linewidths=1.5)
+                                   cmap='jet', extend='neither')
+                cs = ax.contour(xi, yi, zi, plt1.levels,
+                                colors='black', linewidths=0.5)
+                cs = ax.contour(xi, yi, zi, sublevels,
+                                colors='black', linewidths=1.5)
                 ax.clabel(cs, inline=True, fmt='%3.1f', fontsize=8)
-                # add test for LONGITUDE and TIME 
-                ax.set_xticks(np.arange(np.round(np.min(x)),np.ceil(np.max(x))))
+                # add test for LONGITUDE and TIME
+                ax.set_xticks(
+                    np.arange(np.round(np.min(x)), np.ceil(np.max(x))))
                 ax.xaxis.set_major_formatter(x_formatter)
 
             # Matplotlib 2 Subplots, 1 Colorbar
@@ -362,12 +375,13 @@ class Plots():
             plt.colorbar(plt1, ax=fig.axes)
             ax.set_xlabel('{}'.format(self.nc.variables[xaxis].standard_name))
             ylabel = '{} [{}]'.format(self.nc.variables[yaxis].standard_name,
-                self.nc.variables[yaxis].units)
+                                      self.nc.variables[yaxis].units)
 
-            # display common y label with text instead of ax.set_ylabel    
-            fig.text(0.04, 0.5, ylabel, va='center', ha='center', rotation='vertical')
-            figname = '{}-section-{}-{}.png'.format(
-                self.nc.cycle_mesure, self.type, var)
+            # display common y label with text instead of ax.set_ylabel
+            fig.text(0.04, 0.5, ylabel, va='center',
+                     ha='center', rotation='vertical')
+            figname = '{}-section-{}-{}_{}.png'.format(
+                self.nc.cycle_mesure, self.type, var, self.append)
             dest = os.path.join(path, figname)
             fig.savefig(dest)
             print('Printing: ', dest)
@@ -408,13 +422,12 @@ if __name__ == '__main__':
         mpl_logger = logging.getLogger('plt')
         mpl_logger.setLevel(logging.ERROR)
 
-    if args.colors == None:
-        args.colors = ['k-', 'b-', 'r-', 'm-', 'g-']
-    #logging.debug(args)
-    #sys.exit()
+    # logging.debug(args)
+    # sys.exit()
 
     # instanciate plots class
-    p = Plots(args.files, args.keys, args.type, args.colors, args.grid)
+    p = Plots(args.files, args.keys, args.type,
+              args.colors, args.append, args.grid)
 
     # set first and last profiles or all profiles
     profiles = p.nc.variables['PROFILE']
@@ -434,10 +447,10 @@ if __name__ == '__main__':
             p.profiles(s)
 
     # plot sections
-    # vars:  start, end, xaxis, yscale, xinterp=24, yinterp=200, clevels=20, 
+    # vars:  start, end, xaxis, yscale, xinterp=24, yinterp=200, clevels=20,
     # autoscale=True
     if args.sections:
-        p.section(start, end, args.xaxis,args.yscale,args.xinterp,args.yinterp,
-        args.clevels, args.autoscale)
+        p.section(start, end, args.xaxis, args.yscale, args.xinterp, args.yinterp,
+                  args.clevels, args.autoscale)
 
     print('Done.')
