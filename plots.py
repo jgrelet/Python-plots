@@ -63,7 +63,7 @@ def processArgs():
         epilog='J. Grelet IRD US191 - March 2021 / April 2021')
     parser.add_argument('files',
                         help='netcdf file to parse')
-    parser.add_argument('-a', '--append',
+    parser.add_argument('-a', '--append', default="",
                         help='string to append in output filename')
     parser.add_argument('-t', '--type',
                         choices=['CTD', 'XBT', 'ADCP'],
@@ -73,7 +73,7 @@ def processArgs():
                         action='store_true',
                         help='plot profiles')
     parser.add_argument('-k', '--keys',
-                        nargs='+',
+                       nargs='+',
                         help='select physical parameters key(s), (default: %(default)s)')
     parser.add_argument('-l', '--list',
                         nargs='+', type=int,
@@ -265,8 +265,9 @@ class Plots():
                                   self.nc.variables['LONGITUDE'][index], 'W'),
                               va='center', rotation='horizontal'))
         # plt.show()
-        figname = '{}-{:03d}_{}_{}.png'.format(
-            self.nc.cycle_mesure, profile, self.type, self.append)
+		sep = "_" if self.append else ""  
+        figname = '{}-{:03d}_{}{}{}.png'.format(
+            self.nc.cycle_mesure, profile, self.type, sep, self.append)
         dest = os.path.join(path, figname)
         self.fig.savefig(dest)
         print('Printing: ', dest)
@@ -380,8 +381,9 @@ class Plots():
             # display common y label with text instead of ax.set_ylabel
             fig.text(0.04, 0.5, ylabel, va='center',
                      ha='center', rotation='vertical')
-            figname = '{}-section-{}-{}_{}.png'.format(
-                self.nc.cycle_mesure, self.type, var, self.append)
+			sep = "_" if self.append else ""
+            figname = '{}-section-{}-{}{}{}.png'.format(
+                self.nc.cycle_mesure, self.type, var, sep, self.append)
             dest = os.path.join(path, figname)
             fig.savefig(dest)
             print('Printing: ', dest)
@@ -453,4 +455,3 @@ if __name__ == '__main__':
         p.section(start, end, args.xaxis, args.yscale, args.xinterp, args.yinterp,
                   args.clevels, args.autoscale)
 
-    print('Done.')
