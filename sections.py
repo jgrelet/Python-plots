@@ -1,11 +1,8 @@
 # generic plot sections
 
 # Todos:
-# add contour(s) with thin every label and large every five
-# add intrument type: CTD, XBT, ADCP, ...
-# center xlabel over 2 subplots
-# interpolate xaxis
-# test for LONGITUDE and TIME AXIS
+# test if last profile is in file (line 50)
+# write profile number on top axes
 
 import numpy as np
 #import xarray as xr
@@ -20,7 +17,7 @@ from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
 
 
 def p(name, v):
-    if isinstance(v, (int, float)):
+    if isinstance(v, (int, float, list)):
         print('{}: {}'.format(name, v))
     else:
         if v.ndim == 0:
@@ -42,6 +39,7 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
     # Y variable, PRES or DEPTH, must be first, add test
     yaxis = parameters[0]
     yscale = np.array(yscale)
+    pmax = np.max(yscale)
 
     # find the profile index
     profiles = nc.variables['PROFILE'][:].tolist()
@@ -59,11 +57,18 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
     else:
         x_formatter = mdates.DateFormatter('%m/%d')
 
+    # for each physical parameter
     for k in range(1, len(parameters)):
+        # extract data from netcdf variables
         var = parameters[k]
         x = nc.variables[xaxis][start:end]
         y = nc.variables[yaxis][start:end][:]
-        z = nc.variables[var][start:end][:]
+        # find index of the max value given by yscale
+        r, c = np.where(y == pmax)
+        #y = y[:][0:columns[0]]
+        y = nc.variables[yaxis][start:end,:c[0]]
+        z = nc.variables[var][start:end,:c[0]]
+        print(y.shape, z.shape)
         xi = np.linspace(x[0], x[-1], nbxi)
         yi = np.linspace(np.round(np.amin(y)), np.ceil(np.amax(y)), yinterp)
 
@@ -110,7 +115,8 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
             if i == 0:
                 ax.set_title('{}\n{}, {} [{}]'.format(nc.cycle_mesure, var,
                                                       nc.variables[var].long_name, nc.variables[var].units))
-            ax.set_ylim(yscale[:]) if yscale.ndim == 1 else ax.set_ylim(yscale[i])
+            ax.set_ylim(yscale[:]) if yscale.ndim == 1 else ax.set_ylim(
+                yscale[i])
             ax.invert_yaxis()
             # plot contour(s)
             plt1 = ax.contourf(xi, yi, zi, levels=levels, vmin=zmin, vmax=zmax,
@@ -127,7 +133,7 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
             # print(profiles[start:end])
             # ax2.set_xlim(33,45)
             # ax2.set_xticklabels(profiles[start:end])
-            #ax2.xaxis.set_major_formatter(profiles[start:end])
+            # ax2.xaxis.set_major_formatter(profiles[start:end])
 
         # Matplotlib 2 Subplots, 1 Colorbar
         # https://stackoverflow.com/questions/13784201/matplotlib-2-subplots-1-colorbar
@@ -144,8 +150,10 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
 if __name__ == '__main__':
 
     ncfile = "netcdf/OS_PIRATA-FR31_CTD.nc"
-    #section(ncfile, ['PRES', 'TEMP'], 'LATITUDE', 5, 28, [
+    # section(ncfile, ['PRES', 'TEMP'], 'LATITUDE', 5, 28, [
     #    [0, 250], [250, 2000]], xinterp=20, yinterp=200, clevels=30, autoscale=[0, 30])
+    section(ncfile, ['PRES', 'TEMP'], 'TIME', 33, 49,
+        [0, 200], xinterp=16, yinterp=50, clevels=30, autoscale=[0, 30])
     # section(ncfile, ['PRES', 'TEMP'], 'LATITUDE', 5, 28, [
     #         [0, 250], [250, 2000]], xinterp=20, yinterp=200, clevels=30, autoscale=[0, 30])
     # # section(ncfile, ['PRES','PSAL'], 'LATITUDE', 5, 28, [[0,250], [250,2000]],clevels=15,autoscale=[34,37])
@@ -156,13 +164,13 @@ if __name__ == '__main__':
     # section(ncfile, ['DEPTH', 'EWCT'], 'LATITUDE', 5, 28, [[0, 250], [
     #         250, 2200]], xinterp=24, yinterp=200, clevels=30, autoscale=False)
     # section(ncfile, ['DEPTH','EWCT', 'NSCT'], 'LATITUDE', 5, 28, [0,2200])
-    section(ncfile, ['DEPTH', 'EWCT'], 'TIME', 33, 45, [[0, 200], [200,500]], 
-        xinterp=20, yinterp=100, clevels=15, autoscale=[-150,150])
-    
+    # section(ncfile, ['DEPTH', 'EWCT'], 'TIME', 33, 45, [[0, 200], [200, 500]],
+    #        xinterp=20, yinterp=100, clevels=15, autoscale=[-150, 150])
+
     ncfile = "netcdf/OS_PIRATA-FR31_XBT.nc"
     # section(ncfile, ['DEPTH', 'TEMP'], 'LATITUDE', 29, 36, [
     #         [0, 250], [250, 900]], clevels=30, autoscale=[0, 30])
     # section(ncfile, ['DEPTH', 'TEMP'], 'LATITUDE', 29,
     #         36, [0, 900], clevels=30, autoscale=[0, 30])
-    #section(ncfile, ['DEPTH', 'TEMP'], 'LONGITUDE', 39,
+    # section(ncfile, ['DEPTH', 'TEMP'], 'LONGITUDE', 39,
     #        46, [0, 900], clevels=30, autoscale=[0, 30])

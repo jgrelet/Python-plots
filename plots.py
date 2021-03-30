@@ -280,8 +280,14 @@ class Plots():
         yaxis = self.keys[0]
         # find the profile index
         profiles = self.nc.variables['PROFILE'][:].tolist()
+        ymax = np.max(yscale)
         start = profiles.index(start)
-        end = profiles.index(end) + 1
+        try:
+            end = profiles.index(end) + 1
+        except:
+            sys.exit("invalid --list {}-{}, max value must be <= {}".format(start, end,
+                                                                            profiles[-1]))
+
         nbxi = end - start
         if xinterp > end - start:
             xinterp = end - start
@@ -295,8 +301,14 @@ class Plots():
         for k in range(1, len(self.keys)):
             var = self.keys[k]
             x = self.nc.variables[xaxis][start:end]
-            y = self.nc.variables[yaxis][start:end][:]
-            z = self.nc.variables[var][start:end][:]
+            y = self.nc.variables[yaxis][start:end, :]
+            # find index of the max value given by yscale
+            r, c = np.where(y >= ymax)
+            if c.size == 0:
+                sys.exit("invalid --yscale {}, max value must be <= {}".format(yscale.tolist(),
+                                                                               np.max(y)))
+            y = self.nc.variables[yaxis][start:end, :c[0]]
+            z = self.nc.variables[var][start:end, :c[0]]
             xi = np.linspace(x[0], x[-1], nbxi)
             yi = np.linspace(np.round(np.amin(y)),
                              np.ceil(np.amax(y)), yinterp)
@@ -351,8 +363,9 @@ class Plots():
             for i, ax in enumerate(gs):
                 ax = plt.subplot(gs[i])
                 if i == 0:
-                    ax.set_title('{}\n{}, {} [{}]'.format(self.nc.cycle_mesure, var,
-                                                          self.nc.variables[var].long_name, self.nc.variables[var].units))
+                    ax.set_title('{} - {}\n{}, {} [{}]'.format(self.nc.cycle_mesure,
+                                                               self.type, var, self.nc.variables[var].long_name,
+                                                               self.nc.variables[var].units))
                 # set vertical axes
                 ax.set_ylim(yscale[:]) if yscale.ndim == 1 else ax.set_ylim(
                     yscale[i])
