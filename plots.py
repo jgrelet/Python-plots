@@ -1,6 +1,6 @@
 #!/home/science/miniconda3/bin/python
 """
-This class allows you to plot any type of data from an OceanSites 
+This class allows you to plot any type of data from an OceanSites
 profile file, either CTD, XBT or LADCP.
 
 Todos:
@@ -250,7 +250,7 @@ class Plots():
         if(self.grid):
             self.ax.grid()
 
-        #self.ax.legend(lines, [l.get_label() for l in lines])
+        # self.ax.legend(lines, [l.get_label() for l in lines])
         self.fig.text(0.15, 0.95,
                       '{}, {}, Profile: {:03d} Date: {} Lat: {} Long: {}'
                       .format(self.nc.cycle_mesure,
@@ -409,23 +409,23 @@ class Plots():
 if __name__ == '__main__':
 
     # recover and process line arguments
-    parser = processArgs()
-    args = parser.parse_args()
+    parser=processArgs()
+    args=parser.parse_args()
 
     # 'b' = blue (bleu), 'g' = green (vert), 'r' = red (rouge),
     # 'c' = cyan (cyan), 'm' = magenta (magenta), 'y' = yellow (jaune),
     # 'k' = black (noir), 'w' = white (blanc).
     if args.colors == None:
-        args.colors = ['k-', 'b-', 'r-', 'm-', 'g-']
+        args.colors=['k-', 'b-', 'r-', 'm-', 'g-']
 
     # set output path, default is plots
     if args.out == None:
         if args.profiles:
-            path = 'plots'
+            path='plots'
         else:
-            path = 'sections'
+            path='sections'
     else:
-        path = args.out
+        path=args.out
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -433,27 +433,27 @@ if __name__ == '__main__':
     if args.debug:
         logging.basicConfig(
             format='%(levelname)s:%(message)s', level=logging.DEBUG)
-        mpl_logger = logging.getLogger('plt')
+        mpl_logger=logging.getLogger('plt')
         mpl_logger.setLevel(logging.ERROR)
 
     # logging.debug(args)
     # sys.exit()
 
     # instanciate plots class
-    p = Plots(args.files, args.keys, args.type,
+    p=Plots(args.files, args.keys, args.type,
               args.colors, args.append, args.grid)
 
     # set first and last profiles or all profiles
-    profiles = p.nc.variables['PROFILE']
-    end = profiles[-1]
+    profiles=p.nc.variables['PROFILE']
+    end=profiles[-1]
     if args.list == None:
-        start = profiles[0]
+        start=profiles[0]
     # from args.list with start and end values
     elif len(args.list) == 2:
-        start, end = args.list[0], args.list[1]
+        start, end=args.list[0], args.list[1]
     # from args.list with start to last values
     elif len(args.list) == 1:
-        start = args.list[0]
+        start=args.list[0]
 
     # plot profiles
     if args.profiles:
