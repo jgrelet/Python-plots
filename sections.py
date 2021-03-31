@@ -126,13 +126,14 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
             cs = ax.contour(xi, yi, zi, sublevels,
                             colors='black', linewidths=1.5)
             ax.clabel(cs, inline=True, fmt='%3.1f', fontsize=8)
-            ax.set_xticks(np.arange(np.round(np.min(x)), np.ceil(np.max(x))))
+            ax.set_xticks(np.arange(np.round(np.min(x)), np.ceil(np.max(x))),minor=True)
             ax.xaxis.set_major_formatter(x_formatter)
-            # ax2 = ax.twiny()
-            # ax2.spines["top"].set_position(("axes", 1.0))
-            # print(profiles[start:end])
-            # ax2.set_xlim(33,45)
-            # ax2.set_xticklabels(profiles[start:end])
+            ax2 = ax.twiny()
+            ax2.spines["top"].set_position(("axes", 1.0))
+            print(profiles[start:end])
+            #ax2.set_xlim(33,45)
+            #ax2.set_xticks(ax.get_xticks())
+            ax2.set_xticklabels(profiles[start:end])
             # ax2.xaxis.set_major_formatter(profiles[start:end])
 
         # Matplotlib 2 Subplots, 1 Colorbar
