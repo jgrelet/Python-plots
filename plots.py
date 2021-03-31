@@ -79,7 +79,8 @@ def processArgs():
                         nargs='+', type=int,
                         help='select first and last profile, default (none) is all')
     parser.add_argument('-e', '--exclude',
-                        nargs='*', action=Store_as_array, type=int,default=np.asarray([]),
+                        #nargs='*', action=Store_as_array, type=int,default=np.asarray([]),
+                        nargs='*', type=int,default=[],
                         help='give a list of profile(s) to exclude')
     parser.add_argument('-c', '--colors',
                         nargs='+',
@@ -279,23 +280,42 @@ class Plots():
         plt.close(self.fig)
 
     # plot one or more sections
-    def section(self, start, end, xaxis, yscale,
+    def section(self, start, end, xaxis, yscale, exclude,
                 xinterp=24, yinterp=200, clevels=20, autoscale=0):
 
         # Y variable, PRES or DEPTH, must be first, add test
         yaxis = self.keys[0]
         # find the profile index
         profiles = self.nc.variables['PROFILE'][:].tolist()
+        print(profiles)
         ymax = np.max(yscale)
-        start = profiles.index(start)
-        try:
-            end = profiles.index(end) + 1
-        except:
-            sys.exit("invalid --list {}-{}, max value must be <= {}".format(start, end,
+        list_profiles = []
+        list_exclude = []
+        print(exclude)
+        # res = [i for i, val in enumerate(profiles) if val in exclude]
+        # print(res)
+        # list_profiles = np.delete(profiles, res)
+        # print(list_profiles)
+        for i in exclude:
+            list_exclude.append(profiles.index(i))
+        for i in range(start, end + 1):
+            try:
+                list_profiles.append(profiles.index(i))
+            except:
+                sys.exit("invalid --list {}-{}, max value must be <= {}".format(start, end,
                                                                             profiles[-1]))
+        res = [i for i, val in enumerate(list_profiles) if val in list_exclude]
+        print(list_exclude, res)
+        list_profiles = np.delete(list_profiles, res)
+        print(list_profiles)
+        #sys.exit()
+        # start = profiles.index(start)
+        # try:
+        #     end = profiles.index(end) + 1
+        # except:
+        #     sys.exit("invalid --list {}-{}, max value must be <= {}".format(start, end,
 
-        nbxi = end - start
-        print(nbxi)
+        nbxi = len(list_profiles)
         labelrotation = 15 if nbxi > 15 else 0
         if xinterp > end - start:
             xinterp = end - start
@@ -308,18 +328,18 @@ class Plots():
             labelrotation = 15
         for k in range(1, len(self.keys)):
             var = self.keys[k]
-            x = self.nc.variables[xaxis][start:end]
+            x = self.nc.variables[xaxis][list_profiles]
             if xaxis == 'TIME':
                 for i in range(0, len(x)):
                     x[i] = dt2julian(julian2dt(x[i]))
-            y = self.nc.variables[yaxis][start:end, :]
+            y = self.nc.variables[yaxis][list_profiles, :]
             # find index of the max value given by yscale
             r, c = np.where(y >= ymax)
             if c.size == 0:
                 sys.exit("invalid --yscale {}, max value must be <= {}".format(yscale.tolist(),
                                                                                np.max(y)))
-            y = self.nc.variables[yaxis][start:end, :c[0]]
-            z = self.nc.variables[var][start:end, :c[0]]
+            y = self.nc.variables[yaxis][list_profiles, :c[0]]
+            z = self.nc.variables[var][list_profiles, :c[0]]
             xi = np.linspace(x[0], x[-1], nbxi)
             yi = np.linspace(np.round(np.amin(y)),
                              np.ceil(np.amax(y)), yinterp)
@@ -477,5 +497,5 @@ if __name__ == '__main__':
     # vars:  start, end, xaxis, yscale, xinterp=24, yinterp=200, clevels=20,
     # autoscale=True
     if args.sections:
-        p.section(start, end, args.xaxis, args.yscale, args.xinterp, args.yinterp,
-                  args.clevels, args.autoscale)
+        p.section(start, end, args.xaxis, args.yscale, args.exclude,args.xinterp, 
+            args.yinterp, args.clevels, args.autoscale)
