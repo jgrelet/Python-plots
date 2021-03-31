@@ -285,9 +285,11 @@ class Plots():
 
         # Y variable, PRES or DEPTH, must be first, add test
         yaxis = self.keys[0]
-        # find the profile index
+        # get the profile list
         profiles = self.nc.variables['PROFILE'][:].tolist()
         ymax = np.max(yscale)
+        # construct the vector index of the profiles list, without excluded value(s)
+        # this vector is use to extract the profiles from netcdf file
         list_profiles = []
         list_exclude = []
         for i in exclude:
