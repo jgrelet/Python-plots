@@ -287,15 +287,9 @@ class Plots():
         yaxis = self.keys[0]
         # find the profile index
         profiles = self.nc.variables['PROFILE'][:].tolist()
-        print(profiles)
         ymax = np.max(yscale)
         list_profiles = []
         list_exclude = []
-        print(exclude)
-        # res = [i for i, val in enumerate(profiles) if val in exclude]
-        # print(res)
-        # list_profiles = np.delete(profiles, res)
-        # print(list_profiles)
         for i in exclude:
             list_exclude.append(profiles.index(i))
         for i in range(start, end + 1):
@@ -305,15 +299,8 @@ class Plots():
                 sys.exit("invalid --list {}-{}, max value must be <= {}".format(start, end,
                                                                             profiles[-1]))
         res = [i for i, val in enumerate(list_profiles) if val in list_exclude]
-        print(list_exclude, res)
         list_profiles = np.delete(list_profiles, res)
-        print(list_profiles)
-        #sys.exit()
-        # start = profiles.index(start)
-        # try:
-        #     end = profiles.index(end) + 1
-        # except:
-        #     sys.exit("invalid --list {}-{}, max value must be <= {}".format(start, end,
+        #print(list_profiles)
 
         nbxi = len(list_profiles)
         labelrotation = 15 if nbxi > 15 else 0
@@ -414,7 +401,7 @@ class Plots():
                     np.arange(np.round(np.min(x)), np.ceil(np.max(x))),minor=True)
                 ax.tick_params(axis='x', labelrotation=labelrotation)
                 ax.xaxis.set_major_formatter(x_formatter)
-
+                
             # Matplotlib 2 Subplots, 1 Colorbar
             # https://stackoverflow.com/questions/13784201/matplotlib-2-subplots-1-colorbar
             plt.colorbar(plt1, ax=fig.axes)
@@ -469,7 +456,7 @@ if __name__ == '__main__':
         mpl_logger.setLevel(logging.ERROR)
 
     # logging.debug(args)
-    print(args)
+    #print(args)
     # sys.exit()
 
     # instanciate plots class
