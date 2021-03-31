@@ -10,7 +10,7 @@ PROF_ADCP = netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP -p -k DEPTH EWCT NSCT -c k- r-
 SECT_ADCP = netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP -s --append 1N-10W_10S_10W -k DEPTH EWCT NSCT -l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 100 --clevels 30 --autoscale -150 150
 PROF_XBT = netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -p -k DEPTH TEMP DENS SVEL -c k- b- k- g- -g -l 1 5
 SECT_XBT = netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s --append 10S-20S_10W -k DEPTH TEMP --xaxis LATITUDE -l 18 28 --yscale 0 900
-SECT2_XBT = netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s --append 0-10W_0_23W -k DEPTH TEMP --xaxis LONGITUDE -l 39 52 --yscale 0 900
+SECT2_XBT = netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s --append 0-10W_0_23W -k DEPTH TEMP --xaxis LONGITUDE -l 39 61 --yscale 0 900
 
 .PHONY: clean-pyc clean-build clean lint test run build
 

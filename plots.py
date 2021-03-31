@@ -78,6 +78,9 @@ def processArgs():
     parser.add_argument('-l', '--list',
                         nargs='+', type=int,
                         help='select first and last profile, default (none) is all')
+    parser.add_argument('-e', '--exclude',
+                        nargs='*', action=Store_as_array, type=int,default=np.asarray([]),
+                        help='give a list of profile(s) to exclude')
     parser.add_argument('-c', '--colors',
                         nargs='+',
                         help='select colors, ex: k- b- r- m- g-')
@@ -292,9 +295,10 @@ class Plots():
                                                                             profiles[-1]))
 
         nbxi = end - start
+        print(nbxi)
+        labelrotation = 15 if nbxi > 15 else 0
         if xinterp > end - start:
             xinterp = end - start
-        labelrotation = 0
         if xaxis == 'LATITUDE':
             x_formatter = LatitudeFormatter()
         elif xaxis == 'LONGITUDE':
@@ -302,7 +306,6 @@ class Plots():
         else:
             x_formatter = mdates.DateFormatter('%Y/%m/%d %H:%M')
             labelrotation = 15
-
         for k in range(1, len(self.keys)):
             var = self.keys[k]
             x = self.nc.variables[xaxis][start:end]
@@ -446,6 +449,7 @@ if __name__ == '__main__':
         mpl_logger.setLevel(logging.ERROR)
 
     # logging.debug(args)
+    print(args)
     # sys.exit()
 
     # instanciate plots class
