@@ -398,7 +398,8 @@ class Plots():
                 self.nc.cycle_mesure, self.type, var, sep, self.append)
             dest = os.path.join(path, figname)
             fig.savefig(dest)
-            print('Data: {}, printing: {}'.format(zi.shape(), dest))
+            print('Printing: ', dest)
+            print('Data: {}, printing: {}'.format(np.shape(zi), dest))
             plt.close(fig)
 
 
