@@ -31,7 +31,8 @@ from matplotlib import (ticker, cm, gridspec)
 from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
                                 LatitudeLocator)
 
-JULIAN = 33282
+JULIAN_1950 = 33282.5
+JULIAN_1970 = 2440587.5
 DEGREE = u"\u00B0"  # u"\N{DEGREE SIGN}"
 
 
@@ -128,14 +129,16 @@ def julian2dt(jd):
     # Julian Date	12h Jan 1, 4713 BC
     # Modified JD	0h Nov 17, 1858	JD − 2400000.5
     # CNES JD	0h Jan 1, 1950	JD − 2433282.5
-    jd = jd + JULIAN
+    jd = jd + JULIAN_1950
     dt = julian.from_jd(jd, fmt='mjd')
     return dt
 
+def dt2julian(dt):
+    jd = julian.to_jd(dt) - JULIAN_1970
+    return jd    
+
 # Dec2dms convert decimal position to degree, mim with second string,
 # hemi = 0 for latitude, 1 for longitude
-
-
 def Dec2dms(position, hemi):
     if re.match('[EW]', hemi):
         neg = 'W'
@@ -291,16 +294,21 @@ class Plots():
         nbxi = end - start
         if xinterp > end - start:
             xinterp = end - start
+        labelrotation = 0
         if xaxis == 'LATITUDE':
             x_formatter = LatitudeFormatter()
         elif xaxis == 'LONGITUDE':
             x_formatter = LongitudeFormatter()
         else:
-            x_formatter = mdates.DateFormatter('%m/%d')
+            x_formatter = mdates.DateFormatter('%Y/%m/%d %H:%M')
+            labelrotation = 15
 
         for k in range(1, len(self.keys)):
             var = self.keys[k]
             x = self.nc.variables[xaxis][start:end]
+            if xaxis == 'TIME':
+                for i in range(0, len(x)):
+                    x[i] = dt2julian(julian2dt(x[i]))
             y = self.nc.variables[yaxis][start:end, :]
             # find index of the max value given by yscale
             r, c = np.where(y >= ymax)
@@ -380,7 +388,8 @@ class Plots():
                 ax.clabel(cs, inline=True, fmt='%3.1f', fontsize=8)
                 # add test for LONGITUDE and TIME
                 ax.set_xticks(
-                    np.arange(np.round(np.min(x)), np.ceil(np.max(x))))
+                    np.arange(np.round(np.min(x)), np.ceil(np.max(x))),minor=True)
+                ax.tick_params(axis='x', labelrotation=labelrotation)
                 ax.xaxis.set_major_formatter(x_formatter)
 
             # Matplotlib 2 Subplots, 1 Colorbar
