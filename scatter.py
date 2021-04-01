@@ -22,7 +22,7 @@ CM = nc.cycle_mesure
 
 fig = plt.figure(figsize=(6, 12))
 gs = gridspec.GridSpec(2,1)
-ax1 = plt.subplot(gs[0], projection=ccrs.PlateCarree())
+ax1 = plt.subplot(gs[0], projection=ccrs.Mercator())
 ax1.set_extent([-40, 20, -30, 50], crs=ccrs.PlateCarree())
 ax1.coastlines(resolution='auto', color='k')
 ax1.gridlines(color='lightgrey', linestyle='-', draw_labels=True)
@@ -32,7 +32,7 @@ fig.colorbar(im1, ax=ax1, orientation='vertical', pad=0.15)
 ax1.set(xlabel='{} '.format(LONGITUDE.standard_name), ylabel='{} '.format(LATITUDE.standard_name),
         title='{} - {}'.format(CM, SSPS.long_name))
 
-ax2 = plt.subplot(gs[1], projection=ccrs.PlateCarree())
+ax2 = plt.subplot(gs[1], projection=ccrs.Mercator())
 ax2.set_extent([-40, 20, -30, 50], crs=ccrs.PlateCarree())
 ax2.coastlines(resolution='auto', color='k')
 ax2.gridlines(color='lightgrey', linestyle='-', draw_labels=True)
