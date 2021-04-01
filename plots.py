@@ -325,7 +325,7 @@ class Plots():
                     x[i] = dt2julian(julian2dt(x[i]))
             y = self.nc.variables[yaxis][list_profiles, :]
             # find index of the max value given by yscale
-            r, c = np.where(y >= ymax)
+            _, c = np.where(y >= ymax)
             if c.size == 0:
                 sys.exit("invalid --yscale {}, max value must be <= {}".format(yscale.tolist(),
                                                                                np.max(y)))
