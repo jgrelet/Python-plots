@@ -300,6 +300,8 @@ class Plots():
             except:
                 sys.exit("invalid --list {}-{}, max value must be <= {}".format(start, end,
                                                                             profiles[-1]))
+        # remove the exclude list indice from profile list indice
+        # https://www.geeksforgeeks.org/python-indices-list-of-matching-element-from-other-list/?ref=rp
         res = [i for i, val in enumerate(list_profiles) if val in list_exclude]
         list_profiles = np.delete(list_profiles, res)
         #print(list_profiles)
