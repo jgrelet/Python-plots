@@ -1,16 +1,10 @@
 from netCDF4 import Dataset
 import numpy as np
-#import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import cartopy.crs as ccrs
 import os
-
-
-
-# in batch mode, without display
-#matplotlib.use('Agg')  
 
 file = 'netcdf/OS_PIRATA-FR31_TSG.nc'
 ncpath = '.'
@@ -26,8 +20,6 @@ LATITUDE = nc.variables['LATITUDE']
 LONGITUDE = nc.variables['LONGITUDE']
 CM = nc.cycle_mesure
 
-# move subplot outside loop prevent: RuntimeWarning: More than 20 figures have been opened.
-
 fig = plt.figure(figsize=(6, 12))
 gs = gridspec.GridSpec(2,1)
 ax1 = plt.subplot(gs[0], projection=ccrs.PlateCarree())
@@ -36,7 +28,7 @@ ax1.coastlines(resolution='auto', color='k')
 ax1.gridlines(color='lightgrey', linestyle='-', draw_labels=True)
 
 im1 = ax1.scatter(LONGITUDE[:], LATITUDE[:], c=SSPS[:], s=30, cmap='jet', vmin=32, vmax=37, transform=ccrs.PlateCarree())
-fig.colorbar(im1, ax=ax1, orientation='vertical')
+fig.colorbar(im1, ax=ax1, orientation='vertical', pad=0.15)
 ax1.set(xlabel='{} '.format(LONGITUDE.standard_name), ylabel='{} '.format(LATITUDE.standard_name),
         title='{} - {}'.format(CM, SSPS.long_name))
 
@@ -46,7 +38,7 @@ ax2.coastlines(resolution='auto', color='k')
 ax2.gridlines(color='lightgrey', linestyle='-', draw_labels=True)
 
 im2 = ax2.scatter(LONGITUDE[:], LATITUDE[:], c=SSTP[:], s=30, cmap='jet', vmin=21, vmax=32, transform=ccrs.PlateCarree())
-fig.colorbar(im2, ax=ax2, orientation='vertical')
+fig.colorbar(im2, ax=ax2, orientation='vertical', pad=0.15)
 ax2.set(xlabel='{} '.format(LONGITUDE.standard_name), ylabel='{} '.format(LATITUDE.standard_name),
         title='{} - {}'.format(CM, SSPS.long_name))
 
