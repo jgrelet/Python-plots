@@ -28,7 +28,7 @@ ax1.coastlines(resolution='auto', color='k')
 ax1.gridlines(color='lightgrey', linestyle='-', draw_labels=True)
 
 im1 = ax1.scatter(LONGITUDE[:], LATITUDE[:], c=SSPS[:], s=30, cmap='jet', vmin=32, vmax=37, transform=ccrs.PlateCarree())
-fig.colorbar(im1, ax=ax1, orientation='vertical')
+fig.colorbar(im1, ax=ax1, orientation='vertical', pad=0.15)
 ax1.set(xlabel='{} '.format(LONGITUDE.standard_name), ylabel='{} '.format(LATITUDE.standard_name),
         title='{} - {}'.format(CM, SSPS.long_name))
 
@@ -38,7 +38,7 @@ ax2.coastlines(resolution='auto', color='k')
 ax2.gridlines(color='lightgrey', linestyle='-', draw_labels=True)
 
 im2 = ax2.scatter(LONGITUDE[:], LATITUDE[:], c=SSTP[:], s=30, cmap='jet', vmin=21, vmax=32, transform=ccrs.PlateCarree())
-fig.colorbar(im2, ax=ax2, orientation='vertical')
+fig.colorbar(im2, ax=ax2, orientation='vertical', pad=0.15)
 ax2.set(xlabel='{} '.format(LONGITUDE.standard_name), ylabel='{} '.format(LATITUDE.standard_name),
         title='{} - {}'.format(CM, SSTP.long_name))
 
