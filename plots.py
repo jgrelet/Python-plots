@@ -31,7 +31,7 @@ from matplotlib import (ticker, cm, gridspec)
 from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
                                 LatitudeLocator)
 
-JULIAN_1950 = 33282.5
+JULIAN_1950 = 33282
 JULIAN_1970 = 2440587.5
 DEGREE = u"\u00B0"  # u"\N{DEGREE SIGN}"
 
@@ -79,8 +79,8 @@ def processArgs():
                         nargs='+', type=int,
                         help='select first and last profile, default (none) is all')
     parser.add_argument('-e', '--exclude',
-                        #nargs='*', action=Store_as_array, type=int,default=np.asarray([]),
-                        nargs='*', type=int,default=[],
+                        # nargs='*', action=Store_as_array, type=int,default=np.asarray([]),
+                        nargs='*', type=int, default=[],
                         help='give a list of profile(s) to exclude')
     parser.add_argument('-c', '--colors',
                         nargs='+',
@@ -137,12 +137,15 @@ def julian2dt(jd):
     dt = julian.from_jd(jd, fmt='mjd')
     return dt
 
+
 def dt2julian(dt):
     jd = julian.to_jd(dt) - JULIAN_1970
-    return jd    
+    return jd
 
 # Dec2dms convert decimal position to degree, mim with second string,
 # hemi = 0 for latitude, 1 for longitude
+
+
 def Dec2dms(position, hemi):
     if re.match('[EW]', hemi):
         neg = 'W'
@@ -298,13 +301,14 @@ class Plots():
             try:
                 list_profiles.append(profiles.index(i))
             except:
-                sys.exit("invalid --list {}-{}, max value must be <= {}".format(start, end,
-                                                                            profiles[-1]))
+                print("invalid --list {}-{}, we use last profile = {}".format(start, end,
+                                                                              profiles[-1]))
+                i = i - 1
+                break
         # remove the exclude list indice from profile list indice
         # https://www.geeksforgeeks.org/python-indices-list-of-matching-element-from-other-list/?ref=rp
         res = [i for i, val in enumerate(list_profiles) if val in list_exclude]
         list_profiles = np.delete(list_profiles, res)
-        #print(list_profiles)
 
         nbxi = len(list_profiles)
         labelrotation = 15 if nbxi > 15 else 0
@@ -402,10 +406,10 @@ class Plots():
                 ax.clabel(cs, inline=True, fmt='%3.1f', fontsize=8)
                 # add test for LONGITUDE and TIME
                 ax.set_xticks(
-                    np.arange(np.round(np.min(x)), np.ceil(np.max(x))),minor=True)
+                    np.arange(np.round(np.min(x)), np.ceil(np.max(x))), minor=True)
                 ax.tick_params(axis='x', labelrotation=labelrotation)
                 ax.xaxis.set_major_formatter(x_formatter)
-                
+
             # Matplotlib 2 Subplots, 1 Colorbar
             # https://stackoverflow.com/questions/13784201/matplotlib-2-subplots-1-colorbar
             plt.colorbar(plt1, ax=fig.axes)
@@ -432,23 +436,23 @@ class Plots():
 if __name__ == '__main__':
 
     # recover and process line arguments
-    parser=processArgs()
-    args=parser.parse_args()
+    parser = processArgs()
+    args = parser.parse_args()
 
     # 'b' = blue (bleu), 'g' = green (vert), 'r' = red (rouge),
     # 'c' = cyan (cyan), 'm' = magenta (magenta), 'y' = yellow (jaune),
     # 'k' = black (noir), 'w' = white (blanc).
     if args.colors == None:
-        args.colors=['k-', 'b-', 'r-', 'm-', 'g-']
+        args.colors = ['k-', 'b-', 'r-', 'm-', 'g-']
 
     # set output path, default is plots
     if args.out == None:
         if args.profiles:
-            path='plots'
+            path = 'plots'
         else:
-            path='sections'
+            path = 'sections'
     else:
-        path=args.out
+        path = args.out
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -456,28 +460,28 @@ if __name__ == '__main__':
     if args.debug:
         logging.basicConfig(
             format='%(levelname)s:%(message)s', level=logging.DEBUG)
-        mpl_logger=logging.getLogger('plt')
+        mpl_logger = logging.getLogger('plt')
         mpl_logger.setLevel(logging.ERROR)
 
     # logging.debug(args)
-    #print(args)
+    # print(args)
     # sys.exit()
 
     # instanciate plots class
-    p=Plots(args.files, args.keys, args.type,
+    p = Plots(args.files, args.keys, args.type,
               args.colors, args.append, args.grid)
 
     # set first and last profiles or all profiles
-    profiles=p.nc.variables['PROFILE']
-    end=profiles[-1]
+    profiles = p.nc.variables['PROFILE']
+    end = profiles[-1]
     if args.list == None:
-        start=profiles[0]
+        start = profiles[0]
     # from args.list with start and end values
     elif len(args.list) == 2:
-        start, end=args.list[0], args.list[1]
+        start, end = args.list[0], args.list[1]
     # from args.list with start to last values
     elif len(args.list) == 1:
-        start=args.list[0]
+        start = args.list[0]
 
     # plot profiles
     if args.profiles:
@@ -488,5 +492,5 @@ if __name__ == '__main__':
     # vars:  start, end, xaxis, yscale, xinterp=24, yinterp=200, clevels=20,
     # autoscale=True
     if args.sections:
-        p.section(start, end, args.xaxis, args.yscale, args.exclude,args.xinterp, 
-            args.yinterp, args.clevels, args.autoscale)
+        p.section(start, end, args.xaxis, args.yscale, args.exclude, args.xinterp,
+                  args.yinterp, args.clevels, args.autoscale)
