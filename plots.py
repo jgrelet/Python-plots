@@ -96,7 +96,7 @@ def processArgs():
                         help='select xaxis for sections')
     parser.add_argument('--yscale', action=Store_as_array, nargs='*', type=int, default=np.asarray([0, 1000]),
                         help='select vartical scale for sections, ex: [0,2000] or [[0,250],[250,2000]]')
-    parser.add_argument('--xinterp', type=int, default=24,
+    parser.add_argument('--xinterp', type=int, default=None,
                         help='horizontal interpolation')
     parser.add_argument('--yinterp', type=int, default=200,
                         help='vertical interpolation')
@@ -144,8 +144,6 @@ def dt2julian(dt):
 
 # Dec2dms convert decimal position to degree, mim with second string,
 # hemi = 0 for latitude, 1 for longitude
-
-
 def Dec2dms(position, hemi):
     if re.match('[EW]', hemi):
         neg = 'W'
@@ -169,7 +167,15 @@ def Dec2dms(position, hemi):
             intg, DEGREE, min + sec/100*60, geo)
     return str
 
+# interpolate data on x axis
+def interpx(xinterp, x, xi, yi, zi):
+    xx, yy = np.meshgrid(xi, yi, indexing='ij')
+    xi = np.linspace(x[0], x[-1], xinterp)
+    zi = griddata((xx.ravel(), yy.ravel()), zi.ravel(),
+                    (xi[None, :], yi[:, None]))
+    return (xi,zi)
 
+# class Plots
 class Plots():
     def __init__(self, file, keys, ti, colors, append, grid=False):
         self.nc = Dataset(file, mode='r')
@@ -284,7 +290,7 @@ class Plots():
 
     # plot one or more sections
     def section(self, start, end, xaxis, yscale, exclude,
-                xinterp=24, yinterp=200, clevels=20, autoscale=0):
+                xinterp=None, yinterp=200, clevels=20, autoscale=0):
 
         # Y variable, PRES or DEPTH, must be first, add test
         yaxis = self.keys[0]
@@ -312,8 +318,8 @@ class Plots():
 
         nbxi = len(list_profiles)
         labelrotation = 15 if nbxi > 15 else 0
-        if xinterp > end - start:
-            xinterp = end - start
+        # if xinterp > end - start:
+        #     xinterp = end - start
         if xaxis == 'LATITUDE':
             x_formatter = LatitudeFormatter()
         elif xaxis == 'LONGITUDE':
@@ -373,11 +379,13 @@ class Plots():
                 Z = np.interp(yi, yy, zz)
                 zi = np.append(zi, Z, axis=0)
             zi = zi.reshape(nbxi, yinterp)
+
             # horizontal interpolation
-            xx, yy = np.meshgrid(xi, yi, indexing='ij')
-            xi = np.linspace(x[0], x[-1], xinterp)
-            zi = griddata((xx.ravel(), yy.ravel()), zi.ravel(),
-                          (xi[None, :], yi[:, None]))
+            if xinterp == None:
+                zi = zi.transpose()
+            else:
+                (xi, zi) = interpx(xinterp, x, xi, yi, zi)
+            
             # Specifies the geometry of the grid that a subplot will be placed
             fig = plt.figure(figsize=(8, 8))
             # set gridspec ration, one or two subplots
