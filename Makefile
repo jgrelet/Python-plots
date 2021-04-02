@@ -3,9 +3,10 @@ MAIN = $(PROJECT).py
 PYTHON = python
 PYLINT = pylint
 TEST_PATH = tests
-PROF_CTD = netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -p -k PRES TEMP PSAL DOX2 FLU2 -g -c k- b- r- m- g- -g -l 5 9
+PROF_CTD = netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -p -k PRES TEMP PSAL DOX2 FLU2 -g -c k- b- r- m- g- -g -l 1 5
 SECT_CTD = netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s --append 1N-10W_10S_10W -k PRES TEMP --xaxis LATITUDE -l 5 28 --yscale 0 250 250 2000 --xinterp 24 --yinterp 200 --clevels=30 --autoscale 0 30
 SECT2_CTD = netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s --append point-fixe_0-10W -k PRES TEMP --xaxis TIME -l 33 49 --yscale 0 200 --xinterp 17 --yinterp 20 --clevels=30 --autoscale 0 30
+SECT3_CTD = netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s --append point-fixe_0-23W -k PRES TEMP --xaxis TIME -l 54 61 --yscale 0 200 --xinterp 17 --yinterp 20 --clevels=30 --autoscale 0 30
 PROF_ADCP = netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP -p -k DEPTH EWCT NSCT -c k- r- b- -g -l 28 32
 SECT_ADCP = netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP -s --append 1N-10W_10S_10W -k DEPTH EWCT NSCT -l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 100 --clevels 30 --autoscale -150 150
 PROF_XBT = netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -p -k DEPTH TEMP DENS SVEL -c k- b- k- g- -g -l 1 5
@@ -43,6 +44,9 @@ ctds:
 
 ctd2s:
 	$(PYTHON) $(MAIN) $(SECT2_CTD)
+
+ctd3s:
+	$(PYTHON) $(MAIN) $(SECT3_CTD)
 
 xbtp:
 	$(PYTHON) $(MAIN) $(PROF_XBT)
