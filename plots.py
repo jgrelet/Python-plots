@@ -398,8 +398,9 @@ class Plots():
             for i, ax in enumerate(gs):
                 ax = plt.subplot(gs[i])
                 if i == 0:
-                    ax.set_title('{} - {}\n{}, {} [{}]'.format(self.nc.cycle_mesure,
-                                                               self.type, var, self.nc.variables[var].long_name,
+                    ax.set_title('{}\n{} {}\n{}, {} [{}]'.format(self.nc.cycle_mesure,
+                                                               self.type, self.append.replace('_',' '), 
+                                                               var, self.nc.variables[var].long_name,
                                                                self.nc.variables[var].units))
                 # set vertical axes
                 ax.set_ylim(yscale[:]) if yscale.ndim == 1 else ax.set_ylim(
