@@ -95,11 +95,11 @@ def processArgs():
                         choices=['LATITUDE', 'LONGITUDE', 'TIME'], default='TIME',
                         help='select xaxis for sections')
     parser.add_argument('--yscale', action=Store_as_array, nargs='*', type=int, default=np.asarray([0, 1000]),
-                        help='select vartical scale for sections, ex: [0,2000] or [[0,250],[250,2000]]')
+                        help='select vartical scale for sections, ex: 0 2000 or 0 250 250 2000')
     parser.add_argument('--xinterp', type=int, default=None,
-                        help='horizontal interpolation')
-    parser.add_argument('--yinterp', type=int, default=200,
-                        help='vertical interpolation')
+                        help='horizontal interpolation points')
+    parser.add_argument('--yinterp', type=int, default=1,
+                        help='vertical interpolation step, none plot raw data')
     parser.add_argument('--clevels', type=int, default=20,
                         help='contour levels')
     parser.add_argument('--autoscale', nargs='*', type=int, default=[0],
@@ -290,7 +290,7 @@ class Plots():
 
     # plot one or more sections
     def section(self, start, end, xaxis, yscale, exclude,
-                xinterp=None, yinterp=200, clevels=20, autoscale=0):
+                xinterp=None, yinterp=1, clevels=20, autoscale=0):
 
         # Y variable, PRES or DEPTH, must be first, add test
         yaxis = self.keys[0]
@@ -342,8 +342,9 @@ class Plots():
             y = self.nc.variables[yaxis][list_profiles, :c[0]]
             z = self.nc.variables[var][list_profiles, :c[0]]
             xi = np.linspace(x[0], x[-1], nbxi)
-            yi = np.linspace(np.round(np.amin(y)),
-                             np.ceil(np.amax(y)), yinterp)
+            yi = np.arange(np.round(np.amin(y)),
+                             np.ceil(np.amax(y))+ yinterp, yinterp)
+            nbyi = len(yi)
 
             # contourf indeed works a bit differently than other ScalarMappables.
             # If you specify the number of levels (20 in this case) it will take
@@ -378,7 +379,7 @@ class Plots():
                 zz = np.ma.masked_array(z[i]).filled(np.nan)
                 Z = np.interp(yi, yy, zz)
                 zi = np.append(zi, Z, axis=0)
-            zi = zi.reshape(nbxi, yinterp)
+            zi = zi.reshape(nbxi, nbyi)
 
             # horizontal interpolation
             if xinterp == None:
