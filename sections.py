@@ -66,8 +66,8 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
         # find index of the max value given by yscale
         r, c = np.where(y == pmax)
         #y = y[:][0:columns[0]]
-        y = nc.variables[yaxis][start:end,:c[0]]
-        z = nc.variables[var][start:end,:c[0]]
+        y = nc.variables[yaxis][start:end, :c[0]]
+        z = nc.variables[var][start:end, :c[0]]
         print(y.shape, z.shape)
         xi = np.linspace(x[0], x[-1], nbxi)
         yi = np.linspace(np.round(np.amin(y)), np.ceil(np.amax(y)), yinterp)
@@ -126,13 +126,15 @@ def section(ncfile, parameters, xaxis, start, end, yscale,
             cs = ax.contour(xi, yi, zi, sublevels,
                             colors='black', linewidths=1.5)
             ax.clabel(cs, inline=True, fmt='%3.1f', fontsize=8)
-            ax.set_xticks(np.arange(np.round(np.min(x)), np.ceil(np.max(x))),minor=True)
+            ax.set_xticks(np.arange(np.round(np.min(x)),
+                                    np.ceil(np.max(x))), minor=True)
             ax.xaxis.set_major_formatter(x_formatter)
             ax2 = ax.twiny()
             ax2.spines["top"].set_position(("axes", 1.0))
+            print(x)
             print(profiles[start:end])
-            #ax2.set_xlim(33,45)
-            #ax2.set_xticks(ax.get_xticks())
+            ax2.set_xlim(min(x),max(x))
+            ax2.set_xticks(x)
             ax2.set_xticklabels(profiles[start:end])
             # ax2.xaxis.set_major_formatter(profiles[start:end])
 
@@ -154,7 +156,7 @@ if __name__ == '__main__':
     # section(ncfile, ['PRES', 'TEMP'], 'LATITUDE', 5, 28, [
     #    [0, 250], [250, 2000]], xinterp=20, yinterp=200, clevels=30, autoscale=[0, 30])
     section(ncfile, ['PRES', 'TEMP'], 'TIME', 33, 49,
-        [0, 200], xinterp=16, yinterp=50, clevels=30, autoscale=[0, 30])
+            [0, 200], xinterp=16, yinterp=50, clevels=30, autoscale=[0, 30])
     # section(ncfile, ['PRES', 'TEMP'], 'LATITUDE', 5, 28, [
     #         [0, 250], [250, 2000]], xinterp=20, yinterp=200, clevels=30, autoscale=[0, 30])
     # # section(ncfile, ['PRES','PSAL'], 'LATITUDE', 5, 28, [[0,250], [250,2000]],clevels=15,autoscale=[34,37])

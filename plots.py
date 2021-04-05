@@ -299,13 +299,13 @@ class Plots():
         ymax = np.max(yscale)
         # construct the vector index of the profiles list, without excluded value(s)
         # this vector is use to extract the profiles from netcdf file
-        list_profiles = []
-        list_exclude = []
+        index_profiles = []
+        index_exclude = []
         for i in exclude:
-            list_exclude.append(profiles.index(i))
+            index_exclude.append(profiles.index(i))
         for i in range(start, end + 1):
             try:
-                list_profiles.append(profiles.index(i))
+                index_profiles.append(profiles.index(i))
             except:
                 print("invalid --list {}-{}, we use last profile = {}".format(start, end,
                                                                               profiles[-1]))
@@ -313,10 +313,11 @@ class Plots():
                 break
         # remove the exclude list indice from profile list indice
         # https://www.geeksforgeeks.org/python-indices-list-of-matching-element-from-other-list/?ref=rp
-        res = [i for i, val in enumerate(list_profiles) if val in list_exclude]
-        list_profiles = np.delete(list_profiles, res)
+        res = [i for i, val in enumerate(index_profiles) if val in index_exclude]
+        index_profiles = np.delete(index_profiles, res)
+        list_profiles = self.nc.variables['PROFILE'][index_profiles].tolist()
 
-        nbxi = len(list_profiles)
+        nbxi = len(index_profiles)
         labelrotation = 15 if nbxi > 15 else 0
         # if xinterp > end - start:
         #     xinterp = end - start
@@ -329,18 +330,18 @@ class Plots():
             labelrotation = 15
         for k in range(1, len(self.keys)):
             var = self.keys[k]
-            x = self.nc.variables[xaxis][list_profiles]
+            x = self.nc.variables[xaxis][index_profiles]
             if xaxis == 'TIME':
                 for i in range(0, len(x)):
                     x[i] = dt2julian(julian2dt(x[i]))
-            y = self.nc.variables[yaxis][list_profiles, :]
+            y = self.nc.variables[yaxis][index_profiles, :]
             # find index of the max value given by yscale
             _, c = np.where(y >= ymax)
             if c.size == 0:
                 sys.exit("invalid --yscale {}, max value must be <= {}".format(yscale.tolist(),
                                                                                np.max(y)))
-            y = self.nc.variables[yaxis][list_profiles, :c[0]]
-            z = self.nc.variables[var][list_profiles, :c[0]]
+            y = self.nc.variables[yaxis][index_profiles, :c[0]]
+            z = self.nc.variables[var][index_profiles, :c[0]]
             xi = np.linspace(x[0], x[-1], nbxi)
             yi = np.arange(np.round(np.amin(y)),
                              np.ceil(np.amax(y))+ yinterp, yinterp)
@@ -419,10 +420,17 @@ class Plots():
                     np.arange(np.round(np.min(x)), np.ceil(np.max(x))), minor=True)
                 ax.tick_params(axis='x', labelrotation=labelrotation)
                 ax.xaxis.set_major_formatter(x_formatter)
+                plt.colorbar(plt1, ax=ax)
+
+            # add a secondary axes on top with profiles number
+            ax2 = ax.twiny()
+            ax2.set_xlim(min(x),max(x))
+            ax2.set_xticks(x)
+            ax2.set_xticklabels(list_profiles, fontsize=6)
 
             # Matplotlib 2 Subplots, 1 Colorbar
             # https://stackoverflow.com/questions/13784201/matplotlib-2-subplots-1-colorbar
-            plt.colorbar(plt1, ax=fig.axes)
+            #plt.colorbar(plt1, ax=fig.axes)
             ax.set_xlabel('{}'.format(self.nc.variables[xaxis].standard_name))
             ylabel = '{} [{}]'.format(self.nc.variables[yaxis].standard_name,
                                       self.nc.variables[yaxis].units)
