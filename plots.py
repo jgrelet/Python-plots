@@ -69,7 +69,7 @@ def processArgs():
                         choices=['CTD', 'XBT', 'ADCP'],
                         required=True,
                         help='select type instrument CTD, XBT or LADCP ')
-    parser.add_argument('-p', '--profiles',
+    parser.add_argument('-p', '--profiles', '--profile',
                         action='store_true',
                         help='plot profiles')
     parser.add_argument('-k', '--keys',
@@ -88,7 +88,7 @@ def processArgs():
     parser.add_argument('-g', '--grid',
                         action='store_true',
                         help='add grid')
-    parser.add_argument('-s', '--sections',
+    parser.add_argument('-s', '--sections', '--section',
                         action='store_true',
                         help='plot sections')
     parser.add_argument('--xaxis',
@@ -107,6 +107,9 @@ def processArgs():
         None:       use NetCDF valid min and max
         True:       use min(Z) and max(Z)
         [min, max]: define manually min and max'''))
+    parser.add_argument('--display', '--display_profiles',
+                        action='store_true',
+                        help='display profiles number on top axes')
     parser.add_argument('-o', '--out',
                         help='output path, default is plots/')
     parser.add_argument('-d', '--debug', help='display debug informations',
@@ -290,7 +293,7 @@ class Plots():
 
     # plot one or more sections
     def section(self, start, end, xaxis, yscale, exclude,
-                xinterp=None, yinterp=1, clevels=20, autoscale=0):
+                xinterp=None, yinterp=1, clevels=20, autoscale=0, display=None):
 
         # Y variable, PRES or DEPTH, must be first, add test
         yaxis = self.keys[0]
@@ -420,10 +423,11 @@ class Plots():
                     np.arange(np.round(np.min(x)), np.ceil(np.max(x))), minor=True)
                 ax.tick_params(axis='x', labelrotation=labelrotation)
                 ax.xaxis.set_major_formatter(x_formatter)
-                plt.colorbar(plt1, ax=ax)
+                if display:
+                    plt.colorbar(plt1, ax=ax)
 
             # add a secondary axes on top with profiles number
-            ax2 = ax.twiny()
+            #ax2 = ax.twiny()
             # ax_pos = ax.get_position(original=False)
             # print(ax.get_position())
             # print(ax.get_position(original=False))
@@ -431,9 +435,13 @@ class Plots():
             # print(ax.get_position())
             # print(ax.get_position(original=False))
             #ax.set_position(ax_pos)
-            ax2.set_xlim(ax.get_xlim())
-            ax2.set_xticks(x)
-            ax2.set_xticklabels(list_profiles, fontsize=6)
+            if display:
+                ax2 = ax.twiny()
+                ax2.set_xlim(ax.get_xlim())
+                ax2.set_xticks(x)
+                ax2.set_xticklabels(list_profiles, fontsize=6)
+            else:
+                plt.colorbar(plt1, ax=fig.axes)
 
             # Matplotlib 2 Subplots, 1 Colorbar
             # https://stackoverflow.com/questions/13784201/matplotlib-2-subplots-1-colorbar
@@ -518,4 +526,4 @@ if __name__ == '__main__':
     # autoscale=True
     if args.sections:
         p.section(start, end, args.xaxis, args.yscale, args.exclude, args.xinterp,
-                  args.yinterp, args.clevels, args.autoscale)
+                  args.yinterp, args.clevels, args.autoscale, args.display)
