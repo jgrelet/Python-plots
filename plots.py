@@ -424,7 +424,13 @@ class Plots():
 
             # add a secondary axes on top with profiles number
             ax2 = ax.twiny()
-            #ax2.set_xlim(min(x),max(x))
+            # ax_pos = ax.get_position(original=False)
+            # print(ax.get_position())
+            # print(ax.get_position(original=False))
+            # plt.colorbar(plt1, ax=fig.axes)
+            # print(ax.get_position())
+            # print(ax.get_position(original=False))
+            #ax.set_position(ax_pos)
             ax2.set_xlim(ax.get_xlim())
             ax2.set_xticks(x)
             ax2.set_xticklabels(list_profiles, fontsize=6)

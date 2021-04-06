@@ -30,7 +30,7 @@ SECT2_XBT = netcdf/OS_${CRUISE}_XBT.nc -t XBT -s --append 0-10W_0_23W -k DEPTH T
 			--xaxis LONGITUDE -l 39 61 --yscale 0 250 250 900 --xinterp 20 --yinterp 10 \
 			--clevels 30 --autoscale 0 30 -e 59 -o ${SECT_DIR}
 SECT3_XBT = netcdf/OS_${CRUISE}_XBT.nc -t XBT -s --append 4N_23W_CANARIES -k DEPTH TEMP \
-			--xaxis LATITUDE -l 62 75 --yscale 0 250 250 900 --xinterp 3 --yinterp 10 \
+			--xaxis LATITUDE -l 62 75 --yscale 0 250 250 900  --yinterp 10 \
 			--clevels 30 --autoscale 0 30  -o ${SECT_DIR}
 
 .PHONY: clean-pyc clean-build clean lint test run build
