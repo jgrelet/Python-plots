@@ -1,3 +1,4 @@
+#!/home/science/miniconda3/bin/python
 from netCDF4 import Dataset
 import numpy as np
 import matplotlib
