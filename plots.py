@@ -424,7 +424,8 @@ class Plots():
 
             # add a secondary axes on top with profiles number
             ax2 = ax.twiny()
-            ax2.set_xlim(min(x),max(x))
+            #ax2.set_xlim(min(x),max(x))
+            ax2.set_xlim(ax.get_xlim())
             ax2.set_xticks(x)
             ax2.set_xticklabels(list_profiles, fontsize=6)
 
@@ -468,7 +469,7 @@ if __name__ == '__main__':
         if args.profiles:
             path = 'plots'
         else:
-            path = 'sections'
+            path = 'coupes'
     else:
         path = args.out
     if not os.path.exists(path):
