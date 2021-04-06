@@ -423,29 +423,21 @@ class Plots():
                     np.arange(np.round(np.min(x)), np.ceil(np.max(x))), minor=True)
                 ax.tick_params(axis='x', labelrotation=labelrotation)
                 ax.xaxis.set_major_formatter(x_formatter)
+                # add a colorbar on each subplot when profile numbers are displayed
                 if display:
                     plt.colorbar(plt1, ax=ax)
 
             # add a secondary axes on top with profiles number
-            #ax2 = ax.twiny()
-            # ax_pos = ax.get_position(original=False)
-            # print(ax.get_position())
-            # print(ax.get_position(original=False))
-            # plt.colorbar(plt1, ax=fig.axes)
-            # print(ax.get_position())
-            # print(ax.get_position(original=False))
-            #ax.set_position(ax_pos)
             if display:
                 ax2 = ax.twiny()
                 ax2.set_xlim(ax.get_xlim())
                 ax2.set_xticks(x)
                 ax2.set_xticklabels(list_profiles, fontsize=6)
             else:
+                # Matplotlib 2 Subplots, 1 Colorbar
+                # https://stackoverflow.com/questions/13784201/matplotlib-2-subplots-1-colorbar
                 plt.colorbar(plt1, ax=fig.axes)
 
-            # Matplotlib 2 Subplots, 1 Colorbar
-            # https://stackoverflow.com/questions/13784201/matplotlib-2-subplots-1-colorbar
-            #plt.colorbar(plt1, ax=fig.axes)
             ax.set_xlabel('{}'.format(self.nc.variables[xaxis].standard_name))
             ylabel = '{} [{}]'.format(self.nc.variables[yaxis].standard_name,
                                       self.nc.variables[yaxis].units)
