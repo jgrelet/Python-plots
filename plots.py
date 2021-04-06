@@ -454,8 +454,8 @@ class Plots():
             fig.text(0.04, 0.5, ylabel, va='center',
                      ha='center', rotation='vertical')
             sep = "_" if self.append else ""
-            figname = '{}-section-{}-{}{}{}.png'.format(
-                self.nc.cycle_mesure, self.type, var, sep, self.append)
+            figname = '{}{}{}-{}-{}.png'.format(
+                self.nc.cycle_mesure, sep, self.append, self.type, var)
             dest = os.path.join(path, figname)
             fig.savefig(dest)
             print('Data: {}, printing: {}'.format(np.shape(zi), dest))
