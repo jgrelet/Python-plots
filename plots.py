@@ -1,13 +1,10 @@
 #!/home/science/miniconda3/bin/python
 """
 This class allows you to plot any type of data from an OceanSites
-profile file, either CTD, XBT or LADCP.
+files, either CTD, XBT or LADCP (profiles and sections)
 
 Todos:
-- add the date/time and position in the title of the figure.
 - display the figure on screen (command line option)
-- add exclude args option for bad profiles
-- check interpolation when y is not equal
 """
 from netCDF4 import Dataset
 import logging
