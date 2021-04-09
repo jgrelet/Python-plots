@@ -4,5 +4,22 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "Python : Fichier actuel",
+				"type": "python",
+				"request": "launch",
+				"program": "${file}",
+				"console": "integratedTerminal",
+				"args":["netcdf/OS_PIRATA-FR31_CTD.nc", "-t", "CTD", "--sections", 
+					"--append", "point-fixe_0-23W", "-k", "PRES TEMP", "--xaxis",  "TIME", 
+					"-l", "54" ,"69", "--yscale", "0", "200", "--xinterp", "17", 
+					"--yinterp", "10", "--clevels", "30", "--autoscale", "0", "30", 
+					"-o",  "coupes"]
+			}
+		]
+	}
 }
