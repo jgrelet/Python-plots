@@ -21,6 +21,7 @@ make xbts
 
 ## Usage
 
+```sh
 python plots.py -h
 usage:
 python plots.py -t <TYPE> -s (SECTIONS) <OPTIONS> ... | -p (PROFILES) <OPTIONS> ...
@@ -76,6 +77,7 @@ optional arguments:
   -d, --debug           display debug informations
 
 J. Grelet IRD US191 - March 2021 / April 2021
+```
 
 ## Examples
 
@@ -83,8 +85,8 @@ See the shell script used in PIRATA-FR31 cruise launch with cron job:
 
 [python-plots.sh](https://git.outils-is.ird.fr/US191/CRDAP/-/blob/THALASSA/local/sbin/python-plots.sh)
 
-![CTD profile](plots\PIRATA-FR31-004_CTD.png)
+![CTD profile](examples\PIRATA-FR31-004_CTD.png)
 
-![LADCP section](coupes\PIRATA-FR31_1N-10W_10S_10W-ADCP-EWCT.png)
+![LADCP section](examples\PIRATA-FR31_1N-10W_10S_10W-ADCP-EWCT.png)
 
-![XBT section](coupes\PIRATA-FR31_10S-20S_10W-XBT-TEMP.png)
+![XBT section](examples\PIRATA-FR31_10S-20S_10W-XBT-TEMP.png)
