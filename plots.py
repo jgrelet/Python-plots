@@ -200,18 +200,19 @@ class Plots():
             return getattr(self, key)
 
     def profiles(self, profile):
-        self.fig, self.ax = plt.subplots(figsize=(10, 7))
-        self.fig.subplots_adjust(top=0.95-((len(self.keys)-1)*0.06))
-        offset = 0.14
-        tkw = dict(size=4, width=1.5)
 
         # find the profile index
         profiles = self.nc.variables['PROFILE'][:].tolist()
         try:
             index = profiles.index(profile)
         except:
-            print('Profile {} is missing'.format(profile))
+            #print('Profile {} is missing'.format(profile))
             return
+
+        self.fig, self.ax = plt.subplots(figsize=(10, 7))
+        self.fig.subplots_adjust(top=0.95-((len(self.keys)-1)*0.06))
+        offset = 0.14
+        tkw = dict(size=4, width=1.5)
 
         # the first plot with the first parameter, DEPTH or PRES
         y = self.nc.variables[self.keys[0]][index, :]
@@ -281,7 +282,7 @@ class Plots():
                               va='center', rotation='horizontal'))
         # plt.show()
         sep = "_" if self.append else ""
-        figname = '{}-{:03d}_{}{}{}.png'.format(
+        figname = '{}-{:05d}_{}{}{}.png'.format(
             self.nc.cycle_mesure, profile, self.type, sep, self.append)
         dest = os.path.join(path, figname)
         self.fig.savefig(dest)
