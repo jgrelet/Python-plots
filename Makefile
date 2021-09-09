@@ -1,37 +1,38 @@
 PROJECT = plots
 MAIN = ${PROJECT}.py
-CRUISE = PIRATA-FR31
+#CRUISE = PIRATA-FR31
+CRUISE = AMAZOMIX
 PROF_DIR = plots
 SECT_DIR = coupes
 PYTHON = python
 PYLINT = pylint
 TEST_PATH = tests
 PROF_CTD = netcdf/OS_${CRUISE}_CTD.nc -t CTD -p -k PRES TEMP PSAL DOX2 FLU2 -g \
-			-c k- b- r- m- g- -g -l 1 5 -o ${PROF_DIR}
+			-c k- b- r- m- g- -g -l 1 5 -o ${PROF_DIR}/${CRUISE}
 SECT_CTD = netcdf/OS_${CRUISE}_CTD.nc -t CTD -s --append 1N-10W_10S_10W -k PRES TEMP \
 			--xaxis LATITUDE -l 5 28 --yscale 0 250 250 2000 --xinterp 24 --yinterp 10 \
-			--clevels=30 --autoscale 0 30 -o ${SECT_DIR}
+			--clevels=30 --autoscale 0 30 -o ${SECT_DIR}/${CRUISE}
 SECT2_CTD = netcdf/OS_${CRUISE}_CTD.nc -t CTD --section --append point-fixe_0-10W -k PRES TEMP \
 			--xaxis TIME -l 33 49 --yscale 0 200 --xinterp 17 --yinterp 10 --clevels=30 \
-			--autoscale 0 3 -o ${SECT_DIR}
+			--autoscale 0 3 -o ${SECT_DIR}/${CRUISE}
 SECT3_CTD = netcdf/OS_${CRUISE}_CTD.nc -t CTD --sections --append point-fixe_0-23W -k PRES TEMP \
 			--xaxis TIME -l 54 69 --yscale 0 200 --xinterp 17 --yinterp 10 --clevels=30 \
-			--autoscale 0 30 -o ${SECT_DIR}
+			--autoscale 0 30 -o ${SECT_DIR}/${CRUISE}
 PROF_ADCP = netcdf/OS_${CRUISE}_ADCP.nc -t ADCP --profile -k DEPTH EWCT NSCT -c k- r- b- -g \
-			-l 28 32 -o ${PROF_DIR}
+			-l 28 32 -o ${PROF_DIR}/${CRUISE}
 SECT_ADCP = netcdf/OS_${CRUISE}_ADCP.nc -t ADCP --section --append 1N-10W_10S_10W -k DEPTH EWCT NSCT \
 			-l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 20 \
-			--clevels 30 --autoscale -150 150 -o ${SECT_DIR}
+			--clevels 30 --autoscale -150 150 -o ${SECT_DIR}/${CRUISE}
 PROF_XBT = netcdf/OS_${CRUISE}_XBT.nc -t XBT --profiles -k DEPTH TEMP DENS SVEL -c k- b- k- g- -g \
-			-l 1 5 -o ${PROF_DIR}
+			-l 1 5 -o ${PROF_DIR}/${CRUISE}
 SECT_XBT = netcdf/OS_${CRUISE}_XBT.nc -t XBT -s --append 10S-20S_10W -k DEPTH TEMP \
-			--xaxis LATITUDE -l 18 28 --yscale 0 250 250 900 -o ${SECT_DIR}
+			--xaxis LATITUDE -l 18 28 --yscale 0 250 250 900 -o ${SECT_DIR}/${CRUISE}
 SECT2_XBT = netcdf/OS_${CRUISE}_XBT.nc -t XBT --section --append 0-10W_0_23W -k DEPTH TEMP \
 			--xaxis LONGITUDE -l 39 61 --yscale 0 250 250 900 --xinterp 20 --yinterp 10 \
-			--clevels 30 --autoscale 0 30 -e 59 -o ${SECT_DIR}
+			--clevels 30 --autoscale 0 30 -e 59 -o ${SECT_DIR}/${CRUISE}
 SECT3_XBT = netcdf/OS_${CRUISE}_XBT.nc -t XBT --sections --append 4N_23W_CANARIES -k DEPTH TEMP \
 			--xaxis LATITUDE -l 62 75 --yscale 0 250 250 900  --yinterp 10 \
-			--clevels 30 --autoscale 0 30  -o ${SECT_DIR} --display
+			--clevels 30 --autoscale 0 30  -o ${SECT_DIR}/${CRUISE} --display
 
 .PHONY: clean-pyc clean-build clean lint test run build
 
