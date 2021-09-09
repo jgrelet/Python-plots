@@ -5,7 +5,7 @@ Plots profiles and CTD sections with Python from NetCDF OceanSITES files
 ## Installation
 
 ```sh
-conda install -c conda-forge netCDF4 scipy matplotlib cartopy toml
+conda install -c conda-forge netCDF4 scipy matplotlib cartopy cartopy_offlinedata toml
 ```
 
 ```sh
