@@ -11,6 +11,7 @@ import logging
 import argparse
 import textwrap
 import os
+import os.path
 import sys
 import re
 import toml
@@ -47,6 +48,7 @@ def processArgs():
         usage='\npython plots.py -t <TYPE> -s (SECTIONS) <OPTIONS> ... | -p (PROFILES) <OPTIONS> ...\n'
         'PROFILES:\n'
         'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -p -k PRES TEMP PSAL DOX2 FLU2 -g -c k- b- r- m- g-\n'
+        'python plots.py netcdf/OS_AMAZOMIX_CTD.nc -t CTD -p -k PRES TEMP PSAL DOX2 FLU2 -g -c k- b- r- m- g- -g -o plots/AMAZOMIX\n'
         'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -p -k DEPTH TEMP DENS SVEL -c k- b- k- g- -g\n'
         'python plots.py netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP -p -k DEPTH EWCT NSCT -c k- r- b- -g\n'
         'SECTIONS:\n'
@@ -82,6 +84,9 @@ def processArgs():
     parser.add_argument('-c', '--colors',
                         nargs='+',
                         help='select colors, ex: k- b- r- m- g-')
+    parser.add_argument('-f', '--force',
+                        action='store_true',
+                        help='force graphic output even if the file exist')
     parser.add_argument('-g', '--grid',
                         action='store_true',
                         help='add grid')
@@ -209,6 +214,16 @@ class Plots():
             #print('Profile {} is missing'.format(profile))
             return
 
+        # construct plot file name
+        sep = "_" if self.append else ""
+        figname = '{}-{:05d}_{}{}{}.png'.format(
+            self.nc.cycle_mesure, profile, self.type, sep, self.append)
+        dest = os.path.join(path, figname)
+        # test if file exist
+        if os.path.isfile(dest) and not args.force:
+            return
+
+        # initialize subplots
         self.fig, self.ax = plt.subplots(figsize=(10, 7))
         self.fig.subplots_adjust(top=0.95-((len(self.keys)-1)*0.06))
         offset = 0.14
@@ -281,10 +296,7 @@ class Plots():
                                   self.nc.variables['LONGITUDE'][index], 'W'),
                               va='center', rotation='horizontal'))
         # plt.show()
-        sep = "_" if self.append else ""
-        figname = '{}-{:05d}_{}{}{}.png'.format(
-            self.nc.cycle_mesure, profile, self.type, sep, self.append)
-        dest = os.path.join(path, figname)
+
         self.fig.savefig(dest)
         print('Printing: ', dest)
         plt.close(self.fig)
