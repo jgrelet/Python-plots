@@ -7,9 +7,9 @@ import matplotlib.gridspec as gridspec
 import cartopy.crs as ccrs
 import os
 
-file = 'netcdf/OS_PIRATA-FR31_TSG.nc'
+file = 'netcdf/OS_AMAZOMIX_TSG.nc'
 ncpath = '.'
-path = 'plots'
+path = 'plots/AMAZOMIX'
 
 ncfile = os.path.join(ncpath, file)
 nc = Dataset(ncfile, mode='r')
@@ -24,7 +24,7 @@ CM = nc.cycle_mesure
 fig = plt.figure(figsize=(6, 12))
 gs = gridspec.GridSpec(2,1)
 ax1 = plt.subplot(gs[0], projection=ccrs.Mercator())
-ax1.set_extent([-40, 20, -30, 50], crs=ccrs.PlateCarree())
+ax1.set_extent([-55, -43, -3, 7], crs=ccrs.PlateCarree())
 ax1.coastlines(resolution='auto', color='k')
 ax1.gridlines(color='lightgrey', linestyle='-', draw_labels=True)
 
@@ -34,7 +34,7 @@ ax1.set(xlabel='{} '.format(LONGITUDE.standard_name), ylabel='{} '.format(LATITU
         title='{} - {}'.format(CM, SSPS.long_name))
 
 ax2 = plt.subplot(gs[1], projection=ccrs.Mercator())
-ax2.set_extent([-40, 20, -30, 50], crs=ccrs.PlateCarree())
+ax2.set_extent([-55, -43, -3, 7], crs=ccrs.PlateCarree())
 ax2.coastlines(resolution='auto', color='k')
 ax2.gridlines(color='lightgrey', linestyle='-', draw_labels=True)
 
