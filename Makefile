@@ -33,6 +33,7 @@ SECT2_XBT = netcdf/OS_${CRUISE}_XBT.nc -t XBT --section --append 0-10W_0_23W -k 
 SECT3_XBT = netcdf/OS_${CRUISE}_XBT.nc -t XBT --sections --append 4N_23W_CANARIES -k DEPTH TEMP \
 			--xaxis LATITUDE -l 62 75 --yscale 0 250 250 900  --yinterp 10 \
 			--clevels 30 --autoscale 0 30  -o ${SECT_DIR}/${CRUISE} --display
+SCATTER_TSG = netcdf/OS_${CRUISE}_TSG.nc -t TSG --scatter  -k SSPS SSTP -o ${SECT_DIR}/${CRUISE}
 
 .PHONY: clean-pyc clean-build clean lint test run build
 
@@ -95,6 +96,9 @@ adcpp:
 
 adcps:
 	$(PYTHON) $(MAIN) $(SECT_ADCP)
+
+tsgs:
+	$(PYTHON) $(MAIN) $(SCATTER_TSG)
 
 build:
 	pyinstaller -wF --clean $(MAIN)
