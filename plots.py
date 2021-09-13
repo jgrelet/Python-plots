@@ -118,6 +118,9 @@ def processArgs():
     parser.add_argument('--display', '--display_profiles',
                         action='store_true',
                         help='display profiles number on top axes')
+    parser.add_argument('--screen',
+                        action='store_true',
+                        help='display graphics on screen')
     parser.add_argument('-o', '--out',
                         help='output path, default is plots/')
     parser.add_argument('-d', '--debug', help='display debug informations',
@@ -301,7 +304,8 @@ class Plots():
                               Dec2dms(
                                   self.nc.variables['LONGITUDE'][index], 'W'),
                               va='center', rotation='horizontal'))
-        # plt.show()
+        if args.screen:
+            plt.show()
 
         self.fig.savefig(dest)
         print('Printing: ', dest)
@@ -467,6 +471,8 @@ class Plots():
             dest = os.path.join(path, figname)
             fig.savefig(dest)
             print('Data: {}, printing: {}'.format(np.shape(zi), dest))
+            if args.screen:
+                plt.show()
             plt.close(fig)
 
     def scatters(self, path):
@@ -505,8 +511,8 @@ class Plots():
         dest = os.path.join(path, figname)
         fig.savefig(dest)
         print('Printing: ', dest)
-
-        plt.show()
+        if args.screen:
+            plt.show()
         plt.cla()
 
 # main program
@@ -554,7 +560,6 @@ if __name__ == '__main__':
               args.colors, args.append, args.grid)
 
     if args.scatters:
-        print('scatters')
         p.scatters(path)
     else:
 
