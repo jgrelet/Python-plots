@@ -4,6 +4,15 @@ Plots profiles and CTD sections with Python from NetCDF OceanSITES files
 
 ## Installation
 
+Create virtual env with conda, ex:
+
+```sh
+conda create -n python-plots python=3.9
+conda activate python-plots 
+```
+
+Install all mandatory modules:
+
 ```sh
 conda install -c conda-forge netCDF4 scipy matplotlib cartopy cartopy_offlinedata toml
 ```
