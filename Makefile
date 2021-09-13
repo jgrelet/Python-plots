@@ -1,14 +1,14 @@
 PROJECT = plots
 MAIN = ${PROJECT}.py
-#CRUISE = PIRATA-FR31
-CRUISE = AMAZOMIX
+CRUISE = PIRATA-FR31
+CRUISE_AMAZ = AMAZOMIX
 PROF_DIR = plots
 SECT_DIR = coupes
 PYTHON = python
 PYLINT = pylint
 TEST_PATH = tests
-PROF_CTD = netcdf/OS_${CRUISE}_CTD.nc -t CTD -p -k PRES TEMP PSAL DOX2 FLU2 -g \
-			-c k- b- r- m- g- -g  -o ${PROF_DIR}/${CRUISE}
+PROF_CTD = netcdf/OS_${CRUISE_AMAZ}_CTD.nc -t CTD -p -k PRES TEMP PSAL DOX2 FLU2 -g \
+			-c k- b- r- m- g- -g  -o ${PROF_DIR}/${CRUISE_AMAZ}
 SECT_CTD = netcdf/OS_${CRUISE}_CTD.nc -t CTD -s --append 1N-10W_10S_10W -k PRES TEMP \
 			--xaxis LATITUDE -l 5 28 --yscale 0 250 250 2000 --xinterp 24 --yinterp 10 \
 			--clevels=30 --autoscale 0 30 -o ${SECT_DIR}/${CRUISE}
@@ -33,7 +33,7 @@ SECT2_XBT = netcdf/OS_${CRUISE}_XBT.nc -t XBT --section --append 0-10W_0_23W -k 
 SECT3_XBT = netcdf/OS_${CRUISE}_XBT.nc -t XBT --sections --append 4N_23W_CANARIES -k DEPTH TEMP \
 			--xaxis LATITUDE -l 62 75 --yscale 0 250 250 900  --yinterp 10 \
 			--clevels 30 --autoscale 0 30  -o ${SECT_DIR}/${CRUISE} --display
-SCATTER_TSG = netcdf/OS_${CRUISE}_TSG.nc -t TSG --scatter  -k SSPS SSTP -o ${SECT_DIR}/${CRUISE}
+SCATTER_TSG = netcdf/OS_${CRUISE_AMAZ}_TSG.nc -t TSG --scatter  -k SSPS SSTP -o ${SECT_DIR}/${CRUISE_AMAZ}
 
 .PHONY: clean-pyc clean-build clean lint test run build
 
