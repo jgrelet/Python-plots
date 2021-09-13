@@ -28,6 +28,7 @@ import matplotlib.dates as mdates
 from matplotlib import (ticker, cm, gridspec)
 from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
                                 LatitudeLocator)
+import cartopy.crs as ccrs
 
 JULIAN_1950 = 33282
 JULIAN_1970 = 2440587.5
@@ -55,8 +56,10 @@ def processArgs():
         'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s -k PRES TEMP -l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 200 --clevels=30 --autoscale 0 30\n'
         'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s --append 1N-10W_10S_10W -k PRES PSAL -l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 100 --clevels=15 --autoscale 34 37\n'
         'python plots.py netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP -s --append point-fixe_0-10W -k DEPTH EWCT NSCT -l 33 45 --xaxis TIME --yscale 0 500 --xinterp 20 --yinterp 50 --clevels 15 --autoscale -150 150\n'
-        'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s DEPTH TEMP -xaxis LATITUDE\n'
-        'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s DEPTH TEMP -xaxis TIME -l 29 36\n'
+        'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s -k DEPTH TEMP -xaxis LATITUDE\n'
+        'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s -k DEPTH TEMP -xaxis TIME -l 29 36\n'
+        'python plots.py netcdf/OS_AMAZOMIX_TSG.nc -t TSG --scatter  -k SSPS SSTP -o plots/AMAZOMIX\n'
+
         ' \n',
         formatter_class=argparse.RawTextHelpFormatter,
         epilog='J. Grelet IRD US191 - March 2021 / April 2021')
@@ -65,9 +68,9 @@ def processArgs():
     parser.add_argument('-a', '--append', default="",
                         help='string to append in output filename')
     parser.add_argument('-t', '--type',
-                        choices=['CTD', 'XBT', 'ADCP'],
+                        choices=['CTD', 'XBT', 'ADCP', 'TSG'],
                         required=True,
-                        help='select type instrument CTD, XBT or LADCP ')
+                        help='select type instrument CTD, XBT, LADCP, TSG')
     parser.add_argument('-p', '--profiles', '--profile',
                         action='store_true',
                         help='plot profiles')
@@ -93,6 +96,9 @@ def processArgs():
     parser.add_argument('-s', '--sections', '--section',
                         action='store_true',
                         help='plot sections')
+    parser.add_argument('--scatters', '--scatter',
+                        action='store_true',
+                        help='plot scatters')
     parser.add_argument('--xaxis',
                         choices=['LATITUDE', 'LONGITUDE', 'TIME'], default='TIME',
                         help='select xaxis for sections')
@@ -463,6 +469,45 @@ class Plots():
             print('Data: {}, printing: {}'.format(np.shape(zi), dest))
             plt.close(fig)
 
+    def scatters(self, path):
+        #ncfile = os.path.join(path, self.nc)
+
+        SSPS = self.nc.variables['SSPS']
+        SSTP = self.nc.variables['SSTP']
+        TIME = self.nc.variables['TIME']
+        LATITUDE = self.nc.variables['LATITUDE']
+        LONGITUDE = self.nc.variables['LONGITUDE']
+        CM = self.nc.cycle_mesure
+
+        fig = plt.figure(figsize=(6, 12))
+        gs = gridspec.GridSpec(2,1)
+        ax1 = plt.subplot(gs[0], projection=ccrs.Mercator())
+        ax1.set_extent([-55, -43, -3, 7], crs=ccrs.PlateCarree())
+        ax1.coastlines(resolution='auto', color='k')
+        ax1.gridlines(color='lightgrey', linestyle='-', draw_labels=True)
+
+        im1 = ax1.scatter(LONGITUDE[:], LATITUDE[:], c=SSPS[:], s=30, cmap='jet', vmin=32, vmax=37, transform=ccrs.PlateCarree())
+        fig.colorbar(im1, ax=ax1, orientation='vertical', pad=0.15)
+        ax1.set(xlabel='{} '.format(LONGITUDE.standard_name), ylabel='{} '.format(LATITUDE.standard_name),
+                title='{} - {}'.format(CM, SSPS.long_name))
+
+        ax2 = plt.subplot(gs[1], projection=ccrs.Mercator())
+        ax2.set_extent([-55, -43, -3, 7], crs=ccrs.PlateCarree())
+        ax2.coastlines(resolution='auto', color='k')
+        ax2.gridlines(color='lightgrey', linestyle='-', draw_labels=True)
+
+        im2 = ax2.scatter(LONGITUDE[:], LATITUDE[:], c=SSTP[:], s=30, cmap='jet', vmin=21, vmax=32, transform=ccrs.PlateCarree())
+        fig.colorbar(im2, ax=ax2, orientation='vertical', pad=0.15)
+        ax2.set(xlabel='{} '.format(LONGITUDE.standard_name), ylabel='{} '.format(LATITUDE.standard_name),
+                title='{} - {}'.format(CM, SSTP.long_name))
+
+        figname = '{}_TSG_COLCOR_SCATTER.png'.format(CM)
+        dest = os.path.join(path, figname)
+        fig.savefig(dest)
+        print('Printing: ', dest)
+
+        plt.show()
+        plt.cla()
 
 # main program
 # 'b' = blue (bleu), 'g' = green (vert), 'r' = red (rouge),
@@ -484,8 +529,10 @@ if __name__ == '__main__':
     if args.out == None:
         if args.profiles:
             path = 'plots'
-        else:
+        if args.sections:
             path = 'coupes'
+        if args.scatters:
+            path = 'scatters'
     else:
         path = args.out
     if not os.path.exists(path):
@@ -506,26 +553,31 @@ if __name__ == '__main__':
     p = Plots(args.files, args.keys, args.type,
               args.colors, args.append, args.grid)
 
-    # set first and last profiles or all profiles
-    profiles = p.nc.variables['PROFILE']
-    end = profiles[-1]
-    if args.list == None:
-        start = profiles[0]
-    # from args.list with start and end values
-    elif len(args.list) == 2:
-        start, end = args.list[0], args.list[1]
-    # from args.list with start to last values
-    elif len(args.list) == 1:
-        start = args.list[0]
+    if args.scatters:
+        print('scatters')
+        p.scatters(path)
+    else:
 
-    # plot profiles
-    if args.profiles:
-        for s in range(start, end+1):
-            p.profiles(s)
+        # set first and last profiles or all profiles
+        profiles = p.nc.variables['PROFILE']
+        end = profiles[-1]
+        if args.list == None:
+            start = profiles[0]
+        # from args.list with start and end values
+        elif len(args.list) == 2:
+            start, end = args.list[0], args.list[1]
+        # from args.list with start to last values
+        elif len(args.list) == 1:
+            start = args.list[0]
 
-    # plot sections
-    # vars:  start, end, xaxis, yscale, xinterp=24, yinterp=200, clevels=20,
-    # autoscale=True
-    if args.sections:
-        p.section(start, end, args.xaxis, args.yscale, args.exclude, args.xinterp,
-                  args.yinterp, args.clevels, args.autoscale, args.display)
+        # plot profiles
+        if args.profiles:
+            for s in range(start, end+1):
+                p.profiles(s)
+
+        # plot sections
+        # vars:  start, end, xaxis, yscale, xinterp=24, yinterp=200, clevels=20,
+        # autoscale=True
+        if args.sections:
+            p.section(start, end, args.xaxis, args.yscale, args.exclude, args.xinterp,
+                    args.yinterp, args.clevels, args.autoscale, args.display)

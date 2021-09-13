@@ -8,7 +8,7 @@ PYTHON = python
 PYLINT = pylint
 TEST_PATH = tests
 PROF_CTD = netcdf/OS_${CRUISE}_CTD.nc -t CTD -p -k PRES TEMP PSAL DOX2 FLU2 -g \
-			-c k- b- r- m- g- -g -o ${PROF_DIR}/${CRUISE}
+			-c k- b- r- m- g- -g  -o ${PROF_DIR}/${CRUISE}
 SECT_CTD = netcdf/OS_${CRUISE}_CTD.nc -t CTD -s --append 1N-10W_10S_10W -k PRES TEMP \
 			--xaxis LATITUDE -l 5 28 --yscale 0 250 250 2000 --xinterp 24 --yinterp 10 \
 			--clevels=30 --autoscale 0 30 -o ${SECT_DIR}/${CRUISE}
