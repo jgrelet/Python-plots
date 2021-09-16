@@ -213,6 +213,18 @@ class Plots():
         else:
             return getattr(self, key)
 
+    def plot(self, path, figname):
+        dest = os.path.normpath(os.path.join(path, figname))
+        if not os.path.exists(os.path.dirname(dest)):
+            os.makedirs(os.path.dirname(dest), exist_ok=True)
+
+        print('Printing: ', dest)
+        if args.screen:
+            plt.show()
+
+        self.fig.savefig(dest)
+        plt.close(self.fig)
+
     def profiles(self, profile):
 
         # find the profile index
@@ -304,12 +316,7 @@ class Plots():
                               Dec2dms(
                                   self.nc.variables['LONGITUDE'][index], 'W'),
                               va='center', rotation='horizontal'))
-        if args.screen:
-            plt.show()
-
-        self.fig.savefig(dest)
-        print('Printing: ', dest)
-        plt.close(self.fig)
+        self.plot(path, figname)
 
     # plot one or more sections
     def section(self, start, end, xaxis, yscale, exclude,
@@ -412,7 +419,7 @@ class Plots():
                 (xi, zi) = interpx(xinterp, x, xi, yi, zi)
             
             # Specifies the geometry of the grid that a subplot will be placed
-            fig = plt.figure(figsize=(8, 8))
+            self.fig = plt.figure(figsize=(8, 8))
             # set gridspec ration, one or two subplots
             ratio = [1, yscale.ndim] if yscale.ndim == 2 else None
             # loop over vertical range, ex: [0,2000] or [[0,250], [250,2000]]
@@ -456,24 +463,25 @@ class Plots():
             else:
                 # Matplotlib 2 Subplots, 1 Colorbar
                 # https://stackoverflow.com/questions/13784201/matplotlib-2-subplots-1-colorbar
-                plt.colorbar(plt1, ax=fig.axes)
+                plt.colorbar(plt1, ax=self.fig.axes)
 
             ax.set_xlabel('{}'.format(self.nc.variables[xaxis].standard_name))
             ylabel = '{} [{}]'.format(self.nc.variables[yaxis].standard_name,
                                       self.nc.variables[yaxis].units)
 
             # display common y label with text instead of ax.set_ylabel
-            fig.text(0.04, 0.5, ylabel, va='center',
+            self.fig.text(0.04, 0.5, ylabel, va='center',
                      ha='center', rotation='vertical')
             sep = "_" if self.append else ""
             figname = '{}{}{}-{}-{}.png'.format(
                 self.nc.cycle_mesure, sep, self.append, self.type, var)
-            dest = os.path.join(path, figname)
-            fig.savefig(dest)
-            print('Data: {}, printing: {}'.format(np.shape(zi), dest))
-            if args.screen:
-                plt.show()
-            plt.close(fig)
+            #dest = os.path.join(path, figname)
+            self.plot(path, figname)
+            # fig.savefig(dest)
+            # print('Data: {}, printing: {}'.format(np.shape(zi), dest))
+            # if args.screen:
+            #     plt.show()
+            # plt.close(fig)
 
     def scatters(self, path):
         #ncfile = os.path.join(path, self.nc)
@@ -485,7 +493,7 @@ class Plots():
         LONGITUDE = self.nc.variables['LONGITUDE']
         CM = self.nc.cycle_mesure
 
-        fig = plt.figure(figsize=(6, 12))
+        self.fig = plt.figure(figsize=(6, 12))
         gs = gridspec.GridSpec(2,1)
         ax1 = plt.subplot(gs[0], projection=ccrs.Mercator())
         ax1.set_extent([-55, -43, -3, 7], crs=ccrs.PlateCarree())
@@ -493,7 +501,7 @@ class Plots():
         ax1.gridlines(color='lightgrey', linestyle='-', draw_labels=True)
 
         im1 = ax1.scatter(LONGITUDE[:], LATITUDE[:], c=SSPS[:], s=30, cmap='jet', vmin=32, vmax=37, transform=ccrs.PlateCarree())
-        fig.colorbar(im1, ax=ax1, orientation='vertical', pad=0.15)
+        self.fig.colorbar(im1, ax=ax1, orientation='vertical', pad=0.15)
         ax1.set(xlabel='{} '.format(LONGITUDE.standard_name), ylabel='{} '.format(LATITUDE.standard_name),
                 title='{} - {}'.format(CM, SSPS.long_name))
 
@@ -503,17 +511,18 @@ class Plots():
         ax2.gridlines(color='lightgrey', linestyle='-', draw_labels=True)
 
         im2 = ax2.scatter(LONGITUDE[:], LATITUDE[:], c=SSTP[:], s=30, cmap='jet', vmin=21, vmax=32, transform=ccrs.PlateCarree())
-        fig.colorbar(im2, ax=ax2, orientation='vertical', pad=0.15)
+        self.fig.colorbar(im2, ax=ax2, orientation='vertical', pad=0.15)
         ax2.set(xlabel='{} '.format(LONGITUDE.standard_name), ylabel='{} '.format(LATITUDE.standard_name),
                 title='{} - {}'.format(CM, SSTP.long_name))
 
         figname = '{}_TSG_COLCOR_SCATTER.png'.format(CM)
-        dest = os.path.join(path, figname)
-        fig.savefig(dest)
-        print('Printing: ', dest)
-        if args.screen:
-            plt.show()
-        plt.cla()
+        #dest = os.path.join(path, figname)
+        self.plot(path, figname)
+        # fig.savefig(dest)
+        # print('Printing: ', dest)
+        # if args.screen:
+        #     plt.show()
+        # plt.cla()
 
 # main program
 # 'b' = blue (bleu), 'g' = green (vert), 'r' = red (rouge),
@@ -534,16 +543,14 @@ if __name__ == '__main__':
     # set output path, default is plots
     if args.out == None:
         if args.profiles:
-            path = 'plots'
+            path = 'plots/profiles'
         if args.sections:
-            path = 'coupes'
+            path = 'plots/sections'
         if args.scatters:
-            path = 'scatters'
+            path = 'plots/scatters'
     else:
         path = args.out
-    if not os.path.exists(path):
-        os.makedirs(path)
-
+ 
     # set looging mode if debug
     if args.debug:
         logging.basicConfig(
