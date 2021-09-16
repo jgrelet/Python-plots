@@ -1,6 +1,6 @@
 # Python-plots
 
-Plots profiles and CTD sections with Python from NetCDF OceanSITES files
+Plots profiles, sections and scatters for CTD, XBT, ADCP, TSG data with Python from NetCDF OceanSITES files
 
 ## Installation
 
