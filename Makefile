@@ -2,6 +2,7 @@ PROJECT = plots
 MAIN = ${PROJECT}.py
 CRUISE = PIRATA-FR31
 CRUISE_AMAZ = AMAZOMIX
+GOSUD_TOUCAN = TOUC
 PROF_DIR = plots
 SECTION_DIR = sections
 SCATTER_DIR = scatters
@@ -35,6 +36,7 @@ SECT3_XBT = netcdf/OS_${CRUISE}_XBT.nc -t XBT --sections --append 4N_23W_CANARIE
 			--xaxis LATITUDE -l 62 75 --yscale 0 250 250 900  --yinterp 10 \
 			--clevels 30 --autoscale 0 30  -o ${SECTION_DIR}/${CRUISE} --display
 SCATTER_TSG = netcdf/OS_${CRUISE_AMAZ}_TSG.nc -t TSG --scatter  -k SSPS SSTP -o ${SCATTER_DIR}/${CRUISE_AMAZ}
+SCATTER_TOUCAN0702 = netcdf/${GOSUD_TOUCAN}0702.nc -t TSG --scatter --dims DAYD LATX LONX -k SSPS SSJT -o ${SCATTER_DIR}/GOSUD
 
 .PHONY: clean-pyc clean-build clean lint test run build
 
@@ -102,6 +104,9 @@ adcps:
 
 tsgs:
 	$(PYTHON) $(MAIN) $(SCATTER_TSG)
+
+gosud:
+	$(PYTHON) $(MAIN) $(SCATTER_TOUCAN0702)
 
 build:
 	pyinstaller -wF --clean $(MAIN)

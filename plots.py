@@ -99,6 +99,9 @@ def processArgs():
     parser.add_argument('--scatters', '--scatter',
                         action='store_true',
                         help='plot scatters')
+    parser.add_argument('--dims', '--dimensions',
+                        nargs='+', default=['TIME', 'LATITUDE','LONGITUDE'],
+                        help='give dimensions name, ex: TIME, LATITUDE, LONGITUDE')
     parser.add_argument('--xaxis',
                         choices=['LATITUDE', 'LONGITUDE', 'TIME'], default='TIME',
                         help='select xaxis for sections')
@@ -191,8 +194,9 @@ def interpx(xinterp, x, xi, yi, zi):
 
 # class Plots
 class Plots():
-    def __init__(self, file, keys, ti, colors, append, grid=False):
+    def __init__(self, file, dims, keys, ti, colors, append, grid=False):
         self.nc = Dataset(file, mode='r')
+        self.dims = dims
         self.keys = keys
         self.colors = colors
         self.type = ti
@@ -310,11 +314,11 @@ class Plots():
                               self.type,
                               profile,
                               julian2dt(
-                                  self.nc.variables['TIME'][index]),
+                                  self.nc.variables[self.dims[0]][index]),
                               Dec2dms(
-                                  self.nc.variables['LATITUDE'][index], 'N'),
+                                  self.nc.variables[self.dims[1]][index], 'N'),
                               Dec2dms(
-                                  self.nc.variables['LONGITUDE'][index], 'W'),
+                                  self.nc.variables[self.dims[2]][index], 'W'),
                               va='center', rotation='horizontal'))
         self.plot(path, figname)
 
@@ -486,17 +490,26 @@ class Plots():
     def scatters(self, path):
         #ncfile = os.path.join(path, self.nc)
 
-        SSPS = self.nc.variables['SSPS']
-        SSTP = self.nc.variables['SSTP']
-        TIME = self.nc.variables['TIME']
-        LATITUDE = self.nc.variables['LATITUDE']
-        LONGITUDE = self.nc.variables['LONGITUDE']
-        CM = self.nc.cycle_mesure
-
+        SSPS = self.nc.variables[self.keys[0]]
+        SSTP = self.nc.variables[self.keys[1]]
+        TIME = self.nc.variables[self.dims[0]]
+        LATITUDE = self.nc.variables[self.dims[1]]
+        LONGITUDE = self.nc.variables[self.dims[2]]
+        if 'cycle_mesure' in self.nc.ncattrs():
+            CM = self.nc.cycle_mesure
+        else:
+            CM = self.nc.CYCLE_MESURE
+       
+        x1 = min(LONGITUDE) 
+        x2 = max(LONGITUDE) 
+        y1 = min(LATITUDE) 
+        y2 = max(LATITUDE) 
+       
+        area = [x1, x2, y1, y2]
         self.fig = plt.figure(figsize=(6, 12))
         gs = gridspec.GridSpec(2,1)
         ax1 = plt.subplot(gs[0], projection=ccrs.Mercator())
-        ax1.set_extent([-55, -43, -3, 7], crs=ccrs.PlateCarree())
+        ax1.set_extent(area, crs=ccrs.PlateCarree())
         ax1.coastlines(resolution='auto', color='k')
         ax1.gridlines(color='lightgrey', linestyle='-', draw_labels=True)
 
@@ -506,11 +519,11 @@ class Plots():
                 title='{} - {}'.format(CM, SSPS.long_name))
 
         ax2 = plt.subplot(gs[1], projection=ccrs.Mercator())
-        ax2.set_extent([-55, -43, -3, 7], crs=ccrs.PlateCarree())
+        ax2.set_extent(area, crs=ccrs.PlateCarree())
         ax2.coastlines(resolution='auto', color='k')
         ax2.gridlines(color='lightgrey', linestyle='-', draw_labels=True)
 
-        im2 = ax2.scatter(LONGITUDE[:], LATITUDE[:], c=SSTP[:], s=30, cmap='jet', vmin=21, vmax=32, transform=ccrs.PlateCarree())
+        im2 = ax2.scatter(LONGITUDE[:], LATITUDE[:], c=SSTP[:], s=30, cmap='jet', vmin=5, vmax=32, transform=ccrs.PlateCarree())
         self.fig.colorbar(im2, ax=ax2, orientation='vertical', pad=0.15)
         ax2.set(xlabel='{} '.format(LONGITUDE.standard_name), ylabel='{} '.format(LATITUDE.standard_name),
                 title='{} - {}'.format(CM, SSTP.long_name))
@@ -563,7 +576,7 @@ if __name__ == '__main__':
     # sys.exit()
 
     # instanciate plots class
-    p = Plots(args.files, args.keys, args.type,
+    p = Plots(args.files, args.dims, args.keys, args.type,
               args.colors, args.append, args.grid)
 
     if args.scatters:
