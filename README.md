@@ -2,7 +2,28 @@
 
 Plots profiles, sections and scatters for CTD, XBT, ADCP, TSG data with Python from NetCDF OceanSITES files
 
-## Installation
+## Prequisites for Windows
+
+You must install the following tools:
+
+- Visual Studio Code (<https://code.visualstudio.com/>)
+- Git (<https://git-scm.com/downloads>)
+- miniconda3 (<https://docs.conda.io/en/latest/miniconda.html>)
+- chocolatey (<https://chocolatey.org/install>) and install GNU Make package (<https://community.chocolatey.org/packages/make>)
+
+## Installation based on an YAML environment file
+
+``` bash
+conda env create -f environment<OS>.yml -n <new_env_name>
+```
+
+example:
+
+``` bash
+conda env create -f environment-windows.yml -n python-plots
+```
+
+## Installation from scratch
 
 Create virtual env with conda, ex:
 
@@ -19,6 +40,14 @@ conda install -c conda-forge netCDF4 scipy matplotlib cartopy cartopy_offlinedat
 
 ```sh
 pip3 install julian
+```
+
+## Export your environment
+
+Duplicate your environment on other computer or OS, just export it to a YAML file:
+
+```sh
+conda env export --no-builds > environment-windows.yml
 ```
 
 ## Tests

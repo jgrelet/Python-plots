@@ -6,6 +6,8 @@
 *.o
 *.a
 *.swp
+*.yml
+!environment*.yml
 *.png
 !examples/*.png
 *.jpg
