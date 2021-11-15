@@ -128,3 +128,5 @@ See the shell script used in PIRATA-FR31 cruise launch with cron job:
 ![LADCP section](examples/PIRATA-FR31_1N-10W_10S_10W-ADCP-EWCT.png)
 
 ![XBT section](examples/PIRATA-FR31_10S-20S_10W-XBT-TEMP.png)
+
+![TSG surface scatter](examples/TOUC0702_TSG_COLCOR_SCATTER.png)
