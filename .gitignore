@@ -12,6 +12,7 @@
 *.png
 !examples/*.png
 *.jpg
+*.png
 *.jpeg
 *~
 *.ctd
