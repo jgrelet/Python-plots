@@ -121,7 +121,9 @@ J. Grelet IRD US191 - March 2021 / April 2021
 
 See the shell script used in PIRATA-FR31 cruise launch with cron job:
 
-[python-plots.sh](https://git.outils-is.ird.fr/US191/CRDAP/-/blob/THALASSA/local/sbin/python-plots.sh)
+[python-plots.sh](https://github.com/jgrelet/Python-plots/blob/master/examples/python-plots.sh)
+
+![XBT profile](examples/PIRATA-FR31-008_XBT.png)
 
 ![CTD profile](examples/PIRATA-FR31-004_CTD.png)
 
