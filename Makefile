@@ -61,9 +61,9 @@ ifeq ($(OS),Windows_NT)
 		del /Q $(SECTION_DIR)
 		del /Q $(SCATTER_DIR)
 else
-		rm -r ${PROF_DIR)/*
+		rm -r $(PROF_DIR)/*
 		rm -r $(SECTION_DIR)/*
-		rm -r ${SCATTER_DIR}/*
+		rm -r $(SCATTER_DIR)/*
 endif
 
 lint:
