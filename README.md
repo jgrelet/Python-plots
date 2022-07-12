@@ -1,4 +1,4 @@
-# Python-plots
+# Python-plots [![Build Status](https://travis-ci.com/jgrelet/Python-plots.svg?branch=master)](https://app.travis-ci.com/github/jgrelet/Python-plots)
 
 Plots profiles, sections and scatters for CTD, XBT, ADCP, TSG data with Python from NetCDF OceanSITES files
 

@@ -72,6 +72,8 @@ lint:
 test: 
 	$(PYTHON) -m unittest  discover -v  $(TEST_PATH)
 
+all: ctdp ctds xbtp xbts adcpp adcps tsgs  gosud
+
 ctdp:
 	$(PYTHON) $(MAIN) $(PROF_CTD)
 
