@@ -60,11 +60,23 @@ class CliHelpersTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             plots.resolve_profile_range([1, 2, 3], [1, 2, 3])
 
-    def test_should_force_agg_by_default(self):
-        self.assertTrue(plots.should_force_agg(['-p'], {}))
+    def test_screen_requested_detects_flag(self):
+        self.assertTrue(plots.screen_requested(['--screen', '-p']))
 
-    def test_should_not_force_agg_with_screen(self):
-        self.assertFalse(plots.should_force_agg(['--screen', '-p'], {}))
+    def test_screen_requested_is_false_without_flag(self):
+        self.assertFalse(plots.screen_requested(['-p']))
 
-    def test_should_respect_existing_backend(self):
-        self.assertFalse(plots.should_force_agg(['-p'], {'MPLBACKEND': 'QtAgg'}))
+    def test_select_backend_defaults_to_agg_without_screen(self):
+        self.assertEqual(plots.select_matplotlib_backend(['-p'], {}), 'Agg')
+
+    def test_select_backend_keeps_existing_non_agg_backend_for_screen(self):
+        self.assertEqual(
+            plots.select_matplotlib_backend(['--screen', '-p'], {'MPLBACKEND': 'TkAgg'}),
+            'TkAgg',
+        )
+
+    def test_select_backend_prefers_qtagg_for_screen_when_env_is_agg(self):
+        self.assertEqual(
+            plots.select_matplotlib_backend(['--screen', '-p'], {'MPLBACKEND': 'Agg'}),
+            'QtAgg',
+        )

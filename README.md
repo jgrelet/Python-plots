@@ -12,41 +12,18 @@ You must install the following tools:
 
 ## Installation based on an YAML environment file
 
-``` bash
-conda env create -f environment<OS>.yml -n <new_env_name>
-```
-
-example:
-
-``` bash
-conda env create -f environment-windows.yml -n python-plots
-```
-
-## Installation from scratch
-
 Create virtual env with conda, ex:
 
-```sh
-conda create -n python-plots python=3.9
-conda activate python-plots 
+```bash
+conda create -n mambaenv -c conda-forge mamba python=3.11
+conda activate mambaenv
 ```
 
-Install all mandatory modules:
+Next, use `mamba` instead `conda` to create working environments `python-plots` from `environment.yml` file and use it:
 
-```sh
-conda install -c conda-forge netCDF4 scipy matplotlib cartopy cartopy_offlinedata toml
-```
-
-```sh
-pip3 install julian
-```
-
-## Export your environment
-
-Duplicate your environment on other computer or OS, just export it to a YAML file:
-
-```sh
-conda env export --no-builds > environment-windows.yml
+```bash
+mamba env create -f environment.yml
+conda activate python-plots
 ```
 
 ## Tests
@@ -73,13 +50,12 @@ task adcpp
 ```
 
 If you want an interactive window during debugging, use `--screen`.
-In that case Python needs a working GUI backend such as Qt. Installing `PySide6`
-in your environment is the simplest option if the default backend is not available.
+In that case Python needs a working GUI backend such as Qt.
 
 Example:
 
 ```sh
-pip install PySide6
+task adcps -- --screen
 python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -p -k PRES TEMP --screen
 ```
 
@@ -111,8 +87,8 @@ optional arguments:
   -h, --help            show this help message and exit
   -a APPEND, --append APPEND
                         string to append in output filename
-  -t {CTD,XBT,ADCP}, --type {CTD,XBT,ADCP}
-                        select type instrument CTD, XBT or LADCP
+  -t {CTD,XBT,ADCP,TSG}, --type {CTD,XBT,ADCP,TSG}
+                        select type instrument CTD, XBT, LADCP, TSG
   -p, --profiles, --profile
                         plot profiles
   -k KEYS [KEYS ...], --keys KEYS [KEYS ...]
@@ -123,9 +99,14 @@ optional arguments:
                         give a list of profile(s) to exclude
   -c COLORS [COLORS ...], --colors COLORS [COLORS ...]
                         select colors, ex: k- b- r- m- g-
+  -f, --force           force graphic output even if the file exist
   -g, --grid            add grid
   -s, --sections, --section
                         plot sections
+  --scatters, --scatter
+                        plot scatters
+  --dims DIMS [DIMS ...], --dimensions DIMS [DIMS ...]
+                        give dimensions name, ex: TIME, LATITUDE, LONGITUDE
   --xaxis {LATITUDE,LONGITUDE,TIME}
                         select xaxis for sections
   --yscale [YSCALE [YSCALE ...]]
@@ -139,6 +120,7 @@ optional arguments:
                         [min, max]: define manually min and max
   --display, --display_profiles
                         display profiles number on top axes
+  --screen              display graphics on screen
   -o OUT, --out OUT     output path, default is plots/
   -d, --debug           display debug informations
 

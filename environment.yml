@@ -2,7 +2,8 @@ name: python-plots
 channels:
   - conda-forge
 dependencies:
-  - python=3.10
+  - python=3.11
+  - pyside6
   - netcdf4
   - scipy
   - matplotlib

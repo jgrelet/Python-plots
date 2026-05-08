@@ -19,17 +19,45 @@ import numpy as np
 from scipy.interpolate import griddata
 import matplotlib
 
+BACKEND_WARNING = None
 
-def should_force_agg(argv=None, env=None):
+
+def screen_requested(argv=None):
     argv = sys.argv[1:] if argv is None else argv
+    return '--screen' in argv
+
+
+def select_matplotlib_backend(argv=None, env=None):
     env = os.environ if env is None else env
-    if env.get('MPLBACKEND'):
-        return False
-    return '--screen' not in argv
+    configured_backend = env.get('MPLBACKEND')
+    if screen_requested(argv):
+        if configured_backend and configured_backend.lower() != 'agg':
+            return configured_backend
+        return 'QtAgg'
+    return configured_backend or 'Agg'
 
 
-if should_force_agg():
-    matplotlib.use('Agg')
+def configure_matplotlib_backend(argv=None, env=None):
+    global BACKEND_WARNING
+    env = os.environ if env is None else env
+    backend = select_matplotlib_backend(argv, env)
+    env['MPLBACKEND'] = backend
+    try:
+        matplotlib.use(backend, force=True)
+    except Exception as exc:
+        if screen_requested(argv):
+            fallback = 'Agg'
+            env['MPLBACKEND'] = fallback
+            matplotlib.use(fallback, force=True)
+            BACKEND_WARNING = (
+                f'Interactive backend "{backend}" is unavailable ({exc}). '
+                f'Falling back to "{fallback}".'
+            )
+        else:
+            raise
+
+
+configure_matplotlib_backend()
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -239,6 +267,8 @@ class Plots():
 
         print('Printing: ', dest)
         if self.screen:
+            if BACKEND_WARNING:
+                print(BACKEND_WARNING, file=sys.stderr)
             plt.show()
 
         self.fig.savefig(dest)
