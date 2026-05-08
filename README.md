@@ -7,7 +7,8 @@ Plots profiles, sections and scatters for CTD, XBT, ADCP, TSG data with Python f
 You must install the following tools:
 
 - miniconda3 (<https://docs.conda.io/en/latest/miniconda.html>)
-- chocolatey (<https://chocolatey.org/install>) and install GNU Make package (<https://community.chocolatey.org/packages/make>)
+- [scoop](https://scoop.sh/) and install the GNU Make package and git
+- optionally install [Task](https://taskfile.dev/installation/) to use the `Taskfile.yml` shortcuts
 
 ## Installation based on an YAML environment file
 
