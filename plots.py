@@ -11,28 +11,42 @@ import logging
 import argparse
 import textwrap
 import os
-import os.path
 import sys
 import re
-import toml
-import json
-import ast
-from datetime import datetime
 import julian
 import math
 import numpy as np
 from scipy.interpolate import griddata
+import matplotlib
+
+
+def should_force_agg(argv=None, env=None):
+    argv = sys.argv[1:] if argv is None else argv
+    env = os.environ if env is None else env
+    if env.get('MPLBACKEND'):
+        return False
+    return '--screen' not in argv
+
+
+if should_force_agg():
+    matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
-import matplotlib.tri as tri
 import matplotlib.dates as mdates
-from matplotlib import (ticker, cm, gridspec)
-from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
-                                LatitudeLocator)
+from matplotlib import gridspec
+from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 import cartopy.crs as ccrs
 
 JULIAN_1950 = 33282
 JULIAN_1970 = 2440587.5
 DEGREE = u"\u00B0"  # u"\N{DEGREE SIGN}"
+DEFAULT_COLORS = ['k-', 'b-', 'r-', 'm-', 'g-']
+DEFAULT_DIMS = ['TIME', 'LATITUDE', 'LONGITUDE']
+DEFAULT_OUTPUT_PATHS = {
+    'profiles': 'plots/profiles',
+    'sections': 'plots/sections',
+    'scatters': 'plots/scatters',
+}
 
 
 class Store_as_array(argparse._StoreAction):
@@ -100,7 +114,7 @@ def processArgs():
                         action='store_true',
                         help='plot scatters')
     parser.add_argument('--dims', '--dimensions',
-                        nargs='+', default=['TIME', 'LATITUDE','LONGITUDE'],
+                        nargs='+', default=DEFAULT_DIMS,
                         help='give dimensions name, ex: TIME, LATITUDE, LONGITUDE')
     parser.add_argument('--xaxis',
                         choices=['LATITUDE', 'LONGITUDE', 'TIME'], default='TIME',
@@ -131,13 +145,6 @@ def processArgs():
     return parser
 
 
-def on_object_change(func):
-    def wrapper(*args, **kwargs):
-        print("value changed %s - %s" % (args, kwargs))
-        func(*args, **kwargs)
-        return wrapper
-
-
 def make_patch_spines_invisible(ax):
     ax.set_frame_on(True)
     ax.patch.set_visible(False)
@@ -158,6 +165,14 @@ def julian2dt(jd):
 def dt2julian(dt):
     jd = julian.to_jd(dt) - JULIAN_1970
     return jd
+
+
+def get_cycle_label(nc):
+    if 'cycle_mesure' in nc.ncattrs():
+        return nc.cycle_mesure
+    if 'CYCLE_MESURE' in nc.ncattrs():
+        return nc.CYCLE_MESURE
+    return os.path.splitext(os.path.basename(nc.filepath()))[0]
 
 # Dec2dms convert decimal position to degree, mim with second string,
 # hemi = 0 for latitude, 1 for longitude
@@ -194,7 +209,8 @@ def interpx(xinterp, x, xi, yi, zi):
 
 # class Plots
 class Plots():
-    def __init__(self, file, dims, keys, ti, colors, append, grid=False):
+    def __init__(self, file, dims, keys, ti, colors, append, output_path,
+                 force=False, grid=False, screen=False):
         self.nc = Dataset(file, mode='r')
         self.dims = dims
         self.keys = keys
@@ -202,28 +218,27 @@ class Plots():
         self.type = ti
         self.grid = grid
         self.append = append
+        self.output_path = output_path
+        self.force = force
+        self.screen = screen
         self.fig = None
         self.ax = None
-
-    # @on_object_change
-    def __setattr__(self, *args, **kwargs):
-        super().__setattr__(*args, **kwargs)
 
     def __getitem__(self, key):
         ''' overload s[key] with key is the physical parameter '''
         if hasattr(self, key):
-            logging.error(
-                "plot_profiles.py: invalid attribute: \"{}\"".format(key))
-        else:
             return getattr(self, key)
+        logging.error(
+            'plot_profiles.py: invalid attribute: "%s"', key)
+        return None
 
-    def plot(self, path, figname):
-        dest = os.path.normpath(os.path.join(path, figname))
+    def plot(self, figname):
+        dest = os.path.normpath(os.path.join(self.output_path, figname))
         if not os.path.exists(os.path.dirname(dest)):
             os.makedirs(os.path.dirname(dest), exist_ok=True)
 
         print('Printing: ', dest)
-        if args.screen:
+        if self.screen:
             plt.show()
 
         self.fig.savefig(dest)
@@ -242,10 +257,10 @@ class Plots():
         # construct plot file name
         sep = "_" if self.append else ""
         figname = '{}-{:05d}_{}{}{}.png'.format(
-            self.nc.cycle_mesure, profile, self.type, sep, self.append)
-        dest = os.path.join(path, figname)
+            get_cycle_label(self.nc), profile, self.type, sep, self.append)
+        dest = os.path.join(self.output_path, figname)
         # test if file exist
-        if os.path.isfile(dest) and not args.force:
+        if os.path.isfile(dest) and not self.force:
             return
 
         # initialize subplots
@@ -310,7 +325,7 @@ class Plots():
         # self.ax.legend(lines, [l.get_label() for l in lines])
         self.fig.text(0.15, 0.95,
                       '{}, {}, Profile: {:03d} Date: {} Lat: {} Long: {}'
-                      .format(self.nc.cycle_mesure,
+                      .format(get_cycle_label(self.nc),
                               self.type,
                               profile,
                               julian2dt(
@@ -320,7 +335,7 @@ class Plots():
                               Dec2dms(
                                   self.nc.variables[self.dims[2]][index], 'W'),
                               va='center', rotation='horizontal'))
-        self.plot(path, figname)
+        self.plot(figname)
 
     # plot one or more sections
     def section(self, start, end, xaxis, yscale, exclude,
@@ -336,11 +351,14 @@ class Plots():
         index_profiles = []
         index_exclude = []
         for i in exclude:
-            index_exclude.append(profiles.index(i))
+            try:
+                index_exclude.append(profiles.index(i))
+            except ValueError:
+                logging.warning('Excluded profile %s is missing from the dataset', i)
         for i in range(start, end + 1):
             try:
                 index_profiles.append(profiles.index(i))
-            except:
+            except ValueError:
                 print("invalid --list {}-{}, we use last profile = {}".format(start, end,
                                                                               profiles[-1]))
                 i = i - 1
@@ -349,6 +367,8 @@ class Plots():
         # https://www.geeksforgeeks.org/python-indices-list-of-matching-element-from-other-list/?ref=rp
         res = [i for i, val in enumerate(index_profiles) if val in index_exclude]
         index_profiles = np.delete(index_profiles, res)
+        if len(index_profiles) == 0:
+            sys.exit('No profile left to plot after applying --list/--exclude')
         list_profiles = self.nc.variables['PROFILE'][index_profiles].tolist()
 
         nbxi = len(index_profiles)
@@ -433,7 +453,7 @@ class Plots():
             for i, ax in enumerate(gs):
                 ax = plt.subplot(gs[i])
                 if i == 0:
-                    ax.set_title('{}\n{} {}\n{}, {} [{}]'.format(self.nc.cycle_mesure,
+                    ax.set_title('{}\n{} {}\n{}, {} [{}]'.format(get_cycle_label(self.nc),
                                                                self.type, self.append.replace('_',' '), 
                                                                var, self.nc.variables[var].long_name,
                                                                self.nc.variables[var].units))
@@ -478,27 +498,20 @@ class Plots():
                      ha='center', rotation='vertical')
             sep = "_" if self.append else ""
             figname = '{}{}{}-{}-{}.png'.format(
-                self.nc.cycle_mesure, sep, self.append, self.type, var)
-            #dest = os.path.join(path, figname)
-            self.plot(path, figname)
+                get_cycle_label(self.nc), sep, self.append, self.type, var)
+            self.plot(figname)
             # fig.savefig(dest)
             # print('Data: {}, printing: {}'.format(np.shape(zi), dest))
             # if args.screen:
             #     plt.show()
             # plt.close(fig)
 
-    def scatters(self, path):
-        #ncfile = os.path.join(path, self.nc)
-
+    def scatters(self):
         SSPS = self.nc.variables[self.keys[0]]
         SSTP = self.nc.variables[self.keys[1]]
-        TIME = self.nc.variables[self.dims[0]]
         LATITUDE = self.nc.variables[self.dims[1]]
         LONGITUDE = self.nc.variables[self.dims[2]]
-        if 'cycle_mesure' in self.nc.ncattrs():
-            CM = self.nc.cycle_mesure
-        else:
-            CM = self.nc.CYCLE_MESURE
+        CM = get_cycle_label(self.nc)
        
         x1 = min(LONGITUDE) 
         x2 = max(LONGITUDE) 
@@ -529,41 +542,61 @@ class Plots():
                 title='{} - {}'.format(CM, SSTP.long_name))
 
         figname = '{}_TSG_COLCOR_SCATTER.png'.format(CM)
-        #dest = os.path.join(path, figname)
-        self.plot(path, figname)
+        self.plot(figname)
         # fig.savefig(dest)
         # print('Printing: ', dest)
         # if args.screen:
         #     plt.show()
         # plt.cla()
 
-# main program
-# 'b' = blue (bleu), 'g' = green (vert), 'r' = red (rouge),
-# 'c' = cyan (cyan), 'm' = magenta (magenta), 'y' = yellow (jaune),
-# 'k' = black (noir), 'w' = white (blanc).
-if __name__ == '__main__':
+def validate_args(args, parser):
+    if not (args.profiles or args.sections or args.scatters):
+        parser.error('one plotting mode is required: --profiles, --sections or --scatter')
+    if args.keys is None:
+        parser.error('--keys is required')
+    if len(args.keys) < 2:
+        parser.error('--keys expects at least 2 values')
+    if args.profiles and len(args.keys) < 2:
+        parser.error('profiles require at least 2 keys')
+    if args.sections and len(args.keys) < 2:
+        parser.error('sections require at least 2 keys')
+    if args.scatters and len(args.keys) != 2:
+        parser.error('scatter plots require exactly 2 keys')
+    if len(args.dims) != 3:
+        parser.error('--dims expects exactly 3 dimension names')
 
-    # recover and process line arguments
+
+def resolve_output_path(args):
+    if args.out is not None:
+        return args.out
+    if args.profiles:
+        return DEFAULT_OUTPUT_PATHS['profiles']
+    if args.sections:
+        return DEFAULT_OUTPUT_PATHS['sections']
+    return DEFAULT_OUTPUT_PATHS['scatters']
+
+
+def resolve_profile_range(profile_ids, selection):
+    start = int(profile_ids[0])
+    end = int(profile_ids[-1])
+    if selection is None:
+        return start, end
+    if len(selection) == 1:
+        return int(selection[0]), end
+    if len(selection) == 2:
+        return int(selection[0]), int(selection[1])
+    raise ValueError('--list expects one or two profile numbers')
+
+
+def main(argv=None):
     parser = processArgs()
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
+    validate_args(args, parser)
+    if args.colors is None:
+        args.colors = DEFAULT_COLORS.copy()
 
-    # 'b' = blue (bleu), 'g' = green (vert), 'r' = red (rouge),
-    # 'c' = cyan (cyan), 'm' = magenta (magenta), 'y' = yellow (jaune),
-    # 'k' = black (noir), 'w' = white (blanc).
-    if args.colors == None:
-        args.colors = ['k-', 'b-', 'r-', 'm-', 'g-']
+    path = resolve_output_path(args)
 
-    # set output path, default is plots
-    if args.out == None:
-        if args.profiles:
-            path = 'plots/profiles'
-        if args.sections:
-            path = 'plots/sections'
-        if args.scatters:
-            path = 'plots/scatters'
-    else:
-        path = args.out
- 
     # set looging mode if debug
     if args.debug:
         logging.basicConfig(
@@ -571,29 +604,17 @@ if __name__ == '__main__':
         mpl_logger = logging.getLogger('plt')
         mpl_logger.setLevel(logging.ERROR)
 
-    # logging.debug(args)
-    # print(args)
-    # sys.exit()
-
     # instanciate plots class
     p = Plots(args.files, args.dims, args.keys, args.type,
-              args.colors, args.append, args.grid)
+              args.colors, args.append, path, args.force, args.grid, args.screen)
 
     if args.scatters:
-        p.scatters(path)
+        p.scatters()
     else:
 
         # set first and last profiles or all profiles
-        profiles = p.nc.variables['PROFILE']
-        end = profiles[-1]
-        if args.list == None:
-            start = profiles[0]
-        # from args.list with start and end values
-        elif len(args.list) == 2:
-            start, end = args.list[0], args.list[1]
-        # from args.list with start to last values
-        elif len(args.list) == 1:
-            start = args.list[0]
+        profiles = p.nc.variables['PROFILE'][:]
+        start, end = resolve_profile_range(profiles, args.list)
 
         # plot profiles
         if args.profiles:
@@ -606,3 +627,12 @@ if __name__ == '__main__':
         if args.sections:
             p.section(start, end, args.xaxis, args.yscale, args.exclude, args.xinterp,
                     args.yinterp, args.clevels, args.autoscale, args.display)
+    return 0
+
+
+# main program
+# 'b' = blue (bleu), 'g' = green (vert), 'r' = red (rouge),
+# 'c' = cyan (cyan), 'm' = magenta (magenta), 'y' = yellow (jaune),
+# 'k' = black (noir), 'w' = white (blanc).
+if __name__ == '__main__':
+    raise SystemExit(main())

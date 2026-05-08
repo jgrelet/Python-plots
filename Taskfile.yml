@@ -1,0 +1,85 @@
+version: '3'
+
+vars:
+  PYTHON: python
+  MAIN: plots.py
+  TEST_PATH: tests
+
+tasks:
+  default:
+    internal: true
+    cmds:
+      - task --list
+
+  help:
+    desc: List available tasks
+    cmds:
+      - task --list
+
+  check:
+    desc: Run syntax checks and tests
+    cmds:
+      - "{{.PYTHON}} -m compileall {{.MAIN}}"
+      - task: test
+
+  test:
+    desc: Run the automated test suite
+    cmds:
+      - "{{.PYTHON}} -m unittest discover -s {{.TEST_PATH}} -v"
+
+  smoke:
+    desc: Generate one sample profile figure
+    cmds:
+      - "{{.PYTHON}} -m unittest tests.test_smoke -v"
+
+  ctdp:
+    desc: Generate a sample CTD profile
+    cmds:
+      - "{{.PYTHON}} {{.MAIN}} netcdf/OS_AMAZOMIX_CTD.nc -t CTD -p -k PRES TEMP PSAL DOX2 FLU2 -g -c k- b- r- m- g- -o plots/AMAZOMIX {{.CLI_ARGS}}"
+
+  ctds:
+    desc: Generate a sample CTD section
+    cmds:
+      - "{{.PYTHON}} {{.MAIN}} netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s --append 1N-10W_10S_10W -k PRES TEMP --xaxis LATITUDE -l 5 28 --yscale 0 250 250 2000 --xinterp 24 --yinterp 10 --clevels 30 --autoscale 0 30 -o plots/sections/PIRATA-FR31 {{.CLI_ARGS}}"
+
+  xbtp:
+    desc: Generate a sample XBT profile
+    cmds:
+      - "{{.PYTHON}} {{.MAIN}} netcdf/OS_PIRATA-FR31_XBT.nc -t XBT --profiles -k DEPTH TEMP DENS SVEL -c k- b- k- g- -g -l 1 5 -o plots/PIRATA-FR31 {{.CLI_ARGS}}"
+
+  xbts:
+    desc: Generate a sample XBT section
+    cmds:
+      - "{{.PYTHON}} {{.MAIN}} netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s --append 10S-20S_10W -k DEPTH TEMP --xaxis LATITUDE -l 18 28 --yscale 0 250 250 900 -o plots/sections/PIRATA-FR31 {{.CLI_ARGS}}"
+
+  adcpp:
+    desc: Generate a sample ADCP profile
+    cmds:
+      - "{{.PYTHON}} {{.MAIN}} netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP --profile -k DEPTH EWCT NSCT -c k- r- b- -g -l 28 32 -o plots/PIRATA-FR31 {{.CLI_ARGS}}"
+
+  adcps:
+    desc: Generate a sample ADCP section
+    cmds:
+      - "{{.PYTHON}} {{.MAIN}} netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP --section --append 1N-10W_10S_10W -k DEPTH EWCT NSCT -l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 20 --clevels 30 --autoscale -150 150 -o plots/sections/PIRATA-FR31 {{.CLI_ARGS}}"
+
+  tsgs:
+    desc: Generate a sample TSG scatter
+    cmds:
+      - "{{.PYTHON}} {{.MAIN}} netcdf/OS_AMAZOMIX_TSG.nc -t TSG --scatter -k SSPS SSTP -o plots/scatters/AMAZOMIX {{.CLI_ARGS}}"
+
+  gosud:
+    desc: Generate a sample GOSUD scatter
+    cmds:
+      - "{{.PYTHON}} {{.MAIN}} netcdf/TOUC0702.nc -t TSG --scatter --dims DAYD LATX LONX -k SSPS SSJT -o plots/scatters/GOSUD {{.CLI_ARGS}}"
+
+  all:
+    desc: Run the full sample generation suite
+    deps:
+      - ctdp
+      - ctds
+      - xbtp
+      - xbts
+      - adcpp
+      - adcps
+      - tsgs
+      - gosud

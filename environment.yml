@@ -1,0 +1,14 @@
+name: python-plots
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - netcdf4
+  - scipy
+  - matplotlib
+  - cartopy
+  - cartopy_offlinedata
+  - toml
+  - pip
+  - pip:
+      - julian

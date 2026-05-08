@@ -9,6 +9,10 @@
 *.yml
 !.travis.yml
 !environment*.yml
+!Taskfile.yml
+!.github/
+!.github/workflows/
+!.github/workflows/*.yml
 *.png
 !examples/*.png
 *.jpg

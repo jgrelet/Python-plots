@@ -1,4 +1,4 @@
-# Python-plots [![Build Status](https://travis-ci.com/jgrelet/Python-plots.svg?branch=master)](https://app.travis-ci.com/github/jgrelet/Python-plots)
+# Python-plots
 
 Plots profiles, sections and scatters for CTD, XBT, ADCP, TSG data with Python from NetCDF OceanSITES files
 
@@ -52,8 +52,35 @@ conda env export --no-builds > environment-windows.yml
 ## Tests
 
 ```sh
-make ctdp
-make xbts
+make check
+task check
+```
+
+## Display backend
+
+By default, the script now forces the non-interactive `Agg` backend when `--screen` is not used.
+This is the recommended mode for:
+
+- batch processing
+- cron jobs
+- GitHub Actions
+- repeated generation of PNG files during a cruise
+
+Example:
+
+```sh
+task adcpp
+```
+
+If you want an interactive window during debugging, use `--screen`.
+In that case Python needs a working GUI backend such as Qt. Installing `PySide6`
+in your environment is the simplest option if the default backend is not available.
+
+Example:
+
+```sh
+pip install PySide6
+python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -p -k PRES TEMP --screen
 ```
 
 ## Usage
