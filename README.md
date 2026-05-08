@@ -1,4 +1,4 @@
-# Python-plots
+# Python-plots [![CI](https://github.com/jgrelet/Python-plots/actions/workflows/ci.yml/badge.svg)](https://github.com/jgrelet/Python-plots/actions/workflows/ci.yml)
 
 Plots profiles, sections and scatters for CTD, XBT, ADCP, TSG data with Python from NetCDF OceanSITES files
 
