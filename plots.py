@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 """
-This class allows you to plot any type of data from an OceanSites
-files, either CTD, XBT or LADCP (profiles and sections)
+Plot OceanSITES NetCDF data as profiles, sections and surface scatters.
 
-Todos:
-- display the figure on screen (command line option)
+The module configures the matplotlib backend before importing `pyplot`.
+This keeps batch generation reliable on Linux and Windows by defaulting to
+the non-interactive `Agg` backend, while still allowing interactive display
+with `--screen` when a GUI backend such as Qt is available.
 """
 from netCDF4 import Dataset
 import logging
@@ -19,15 +20,19 @@ import numpy as np
 from scipy.interpolate import griddata
 import matplotlib
 
+# Holds a one-line fallback message when interactive display requested by the
+# user cannot be enabled and matplotlib falls back to a non-interactive backend.
 BACKEND_WARNING = None
 
 
 def screen_requested(argv=None):
+    """Return True when interactive display was explicitly requested."""
     argv = sys.argv[1:] if argv is None else argv
     return '--screen' in argv
 
 
 def select_matplotlib_backend(argv=None, env=None):
+    """Choose a safe backend for batch mode, or an interactive one for --screen."""
     env = os.environ if env is None else env
     configured_backend = env.get('MPLBACKEND')
     if screen_requested(argv):
@@ -38,6 +43,7 @@ def select_matplotlib_backend(argv=None, env=None):
 
 
 def configure_matplotlib_backend(argv=None, env=None):
+    """Configure matplotlib before importing pyplot."""
     global BACKEND_WARNING
     env = os.environ if env is None else env
     backend = select_matplotlib_backend(argv, env)
@@ -59,6 +65,7 @@ def configure_matplotlib_backend(argv=None, env=None):
 
 configure_matplotlib_backend()
 
+# pyplot must be imported only after the backend has been selected.
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib import gridspec
@@ -77,6 +84,7 @@ DEFAULT_OUTPUT_PATHS = {
 
 
 class Store_as_array(argparse._StoreAction):
+    """Convert flat CLI numeric values to numpy arrays, with optional 2x2 reshape."""
     def __call__(self, parser, namespace, values, option_string=None):
         values = np.array(values)
         if len(values) == 4:
@@ -84,95 +92,8 @@ class Store_as_array(argparse._StoreAction):
         return super().__call__(parser, namespace, values, option_string)
 
 
-def processArgs():
-    parser = argparse.ArgumentParser(
-        description='This program read CTD NetCDF file and plot parameters vs PRES',
-        usage='\npython plots.py -t <TYPE> -s (SECTIONS) <OPTIONS> ... | -p (PROFILES) <OPTIONS> ...\n'
-        'PROFILES:\n'
-        'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -p -k PRES TEMP PSAL DOX2 FLU2 -g -c k- b- r- m- g-\n'
-        'python plots.py netcdf/OS_AMAZOMIX_CTD.nc -t CTD -p -k PRES TEMP PSAL DOX2 FLU2 -g -c k- b- r- m- g- -g -o plots/AMAZOMIX\n'
-        'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -p -k DEPTH TEMP DENS SVEL -c k- b- k- g- -g\n'
-        'python plots.py netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP -p -k DEPTH EWCT NSCT -c k- r- b- -g\n'
-        'SECTIONS:\n'
-        'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s -k PRES TEMP -l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 200 --clevels=30 --autoscale 0 30\n'
-        'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s --append 1N-10W_10S_10W -k PRES PSAL -l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 100 --clevels=15 --autoscale 34 37\n'
-        'python plots.py netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP -s --append point-fixe_0-10W -k DEPTH EWCT NSCT -l 33 45 --xaxis TIME --yscale 0 500 --xinterp 20 --yinterp 50 --clevels 15 --autoscale -150 150\n'
-        'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s -k DEPTH TEMP -xaxis LATITUDE\n'
-        'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s -k DEPTH TEMP -xaxis TIME -l 29 36\n'
-        'python plots.py netcdf/OS_AMAZOMIX_TSG.nc -t TSG --scatter  -k SSPS SSTP -o plots/AMAZOMIX\n'
-
-        ' \n',
-        formatter_class=argparse.RawTextHelpFormatter,
-        epilog='J. Grelet IRD US191 - March 2021 / April 2021')
-    parser.add_argument('files',
-                        help='netcdf file to parse')
-    parser.add_argument('-a', '--append', default="",
-                        help='string to append in output filename')
-    parser.add_argument('-t', '--type',
-                        choices=['CTD', 'XBT', 'ADCP', 'TSG'],
-                        required=True,
-                        help='select type instrument CTD, XBT, LADCP, TSG')
-    parser.add_argument('-p', '--profiles', '--profile',
-                        action='store_true',
-                        help='plot profiles')
-    parser.add_argument('-k', '--keys',
-                        nargs='+',
-                        help='select physical parameters key(s), (default: %(default)s)')
-    parser.add_argument('-l', '--list',
-                        nargs='+', type=int,
-                        help='select first and last profile, default (none) is all')
-    parser.add_argument('-e', '--exclude',
-                        # nargs='*', action=Store_as_array, type=int,default=np.asarray([]),
-                        nargs='*', type=int, default=[],
-                        help='give a list of profile(s) to exclude')
-    parser.add_argument('-c', '--colors',
-                        nargs='+',
-                        help='select colors, ex: k- b- r- m- g-')
-    parser.add_argument('-f', '--force',
-                        action='store_true',
-                        help='force graphic output even if the file exist')
-    parser.add_argument('-g', '--grid',
-                        action='store_true',
-                        help='add grid')
-    parser.add_argument('-s', '--sections', '--section',
-                        action='store_true',
-                        help='plot sections')
-    parser.add_argument('--scatters', '--scatter',
-                        action='store_true',
-                        help='plot scatters')
-    parser.add_argument('--dims', '--dimensions',
-                        nargs='+', default=DEFAULT_DIMS,
-                        help='give dimensions name, ex: TIME, LATITUDE, LONGITUDE')
-    parser.add_argument('--xaxis',
-                        choices=['LATITUDE', 'LONGITUDE', 'TIME'], default='TIME',
-                        help='select xaxis for sections')
-    parser.add_argument('--yscale', action=Store_as_array, nargs='*', type=int, default=np.asarray([0, 1000]),
-                        help='select vartical scale for sections, ex: 0 2000 or 0 250 250 2000')
-    parser.add_argument('--xinterp', type=int, default=None,
-                        help='horizontal interpolation points')
-    parser.add_argument('--yinterp', type=int, default=1,
-                        help='vertical interpolation step, none plot raw data')
-    parser.add_argument('--clevels', type=int, default=20,
-                        help='contour levels')
-    parser.add_argument('--autoscale', nargs='*', type=int, default=[0],
-                        help=textwrap.dedent('''\
-        None:       use NetCDF valid min and max
-        True:       use min(Z) and max(Z)
-        [min, max]: define manually min and max'''))
-    parser.add_argument('--display', '--display_profiles',
-                        action='store_true',
-                        help='display profiles number on top axes')
-    parser.add_argument('--screen',
-                        action='store_true',
-                        help='display graphics on screen')
-    parser.add_argument('-o', '--out',
-                        help='output path, default is plots/')
-    parser.add_argument('-d', '--debug', help='display debug informations',
-                        action='store_true')
-    return parser
-
-
 def make_patch_spines_invisible(ax):
+    """Hide patch spines so extra x-axes can be stacked cleanly."""
     ax.set_frame_on(True)
     ax.patch.set_visible(False)
     for sp in ax.spines.values():
@@ -180,6 +101,7 @@ def make_patch_spines_invisible(ax):
 
 
 def julian2dt(jd):
+    """Convert CNES julian days since 1950-01-01 to a datetime."""
     # see: https://en.wikipedia.org/wiki/Julian_day
     # Julian Date	12h Jan 1, 4713 BC
     # Modified JD	0h Nov 17, 1858	JD − 2400000.5
@@ -188,10 +110,12 @@ def julian2dt(jd):
 
 
 def dt2julian(dt):
+    """Convert a datetime to CNES julian days since 1950-01-01."""
     return (dt - CNES_EPOCH).total_seconds() / 86400.0
 
 
 def get_cycle_label(nc):
+    """Return a cruise/cycle label from the dataset attributes or filename."""
     if 'cycle_mesure' in nc.ncattrs():
         return nc.cycle_mesure
     if 'CYCLE_MESURE' in nc.ncattrs():
@@ -201,6 +125,7 @@ def get_cycle_label(nc):
 # Dec2dms convert decimal position to degree, mim with second string,
 # hemi = 0 for latitude, 1 for longitude
 def Dec2dms(position, hemi):
+    """Format decimal coordinates as degree/minute strings with hemisphere."""
     if re.match('[EW]', hemi):
         neg = 'W'
         pos = 'E'
@@ -225,6 +150,7 @@ def Dec2dms(position, hemi):
 
 # interpolate data on x axis
 def interpx(xinterp, x, xi, yi, zi):
+    """Interpolate an already vertically-gridded section on the horizontal axis."""
     xx, yy = np.meshgrid(xi, yi, indexing='ij')
     xi = np.linspace(x[0], x[-1], xinterp)
     zi = griddata((xx.ravel(), yy.ravel()), zi.ravel(),
@@ -233,6 +159,7 @@ def interpx(xinterp, x, xi, yi, zi):
 
 # class Plots
 class Plots():
+    """Wrap NetCDF access and figure generation for profiles, sections and scatters."""
     def __init__(self, file, dims, keys, ti, colors, append, output_path,
                  force=False, grid=False, screen=False):
         self.nc = Dataset(file, mode='r')
@@ -249,7 +176,7 @@ class Plots():
         self.ax = None
 
     def __getitem__(self, key):
-        ''' overload s[key] with key is the physical parameter '''
+        """Allow dict-like access to already attached instance attributes."""
         if hasattr(self, key):
             return getattr(self, key)
         logging.error(
@@ -257,6 +184,7 @@ class Plots():
         return None
 
     def plot(self, figname):
+        """Save the current figure, creating the output directory when needed."""
         dest = os.path.normpath(os.path.join(self.output_path, figname))
         if not os.path.exists(os.path.dirname(dest)):
             os.makedirs(os.path.dirname(dest), exist_ok=True)
@@ -271,13 +199,13 @@ class Plots():
         plt.close(self.fig)
 
     def profiles(self, profile):
+        """Plot all requested variables for a single CTD/XBT/ADCP profile."""
 
         # find the profile index
         profiles = self.nc.variables['PROFILE'][:].tolist()
         try:
             index = profiles.index(profile)
         except:
-            #print('Profile {} is missing'.format(profile))
             return
 
         # construct plot file name
@@ -319,14 +247,6 @@ class Plots():
             i = k-2
             par = self.ax.twiny()
             key = self.keys[k]
-            # if (k % 2) == 0:
-            #     position = 'top'
-            #     par.spines[position].set_position(("outward", 1.0+(offset*i)))
-            #     print('{}'.format(1.0+(offset*i)))
-            # else:
-            #     position = 'bottom'
-            #     par.spines[position].set_position(("outward", 0-(offset*i)))
-            #     print('{}'.format(0-(offset*i)))
 
             position = 'top'
             par.spines[position].set_position(("axes", 1.0+(offset*i)))
@@ -348,7 +268,6 @@ class Plots():
         if(self.grid):
             self.ax.grid()
 
-        # self.ax.legend(lines, [l.get_label() for l in lines])
         self.fig.text(0.15, 0.95,
                       '{}, {}, Profile: {:03d} Date: {} Lat: {} Long: {}'
                       .format(get_cycle_label(self.nc),
@@ -366,6 +285,7 @@ class Plots():
     # plot one or more sections
     def section(self, start, end, xaxis, yscale, exclude,
                 xinterp=None, yinterp=1, clevels=20, autoscale=0, display=None):
+        """Plot one or more section variables over a profile range."""
 
         # Y variable, PRES or DEPTH, must be first, add test
         yaxis = self.keys[0]
@@ -399,8 +319,6 @@ class Plots():
 
         nbxi = len(index_profiles)
         labelrotation = 15 if nbxi > 15 else 0
-        # if xinterp > end - start:
-        #     xinterp = end - start
         if xaxis == 'LATITUDE':
             x_formatter = LatitudeFormatter()
         elif xaxis == 'LONGITUDE':
@@ -453,6 +371,7 @@ class Plots():
             sublevels = np.linspace(zmin, zmax, round(clevels/5)+1)
 
             # verticale interpolation
+            # Regrid each profile on a common vertical axis before contouring.
             zi = np.array(([]))
             for i in range(0, len(z)):
                 # convert fill_value from Dataset to numpy
@@ -463,6 +382,7 @@ class Plots():
             zi = zi.reshape(nbxi, nbyi)
 
             # horizontal interpolation
+            # Optional smoothing along-track when a denser x grid is requested.
             if xinterp == None:
                 zi = zi.transpose()
             else:
@@ -526,13 +446,9 @@ class Plots():
             figname = '{}{}{}-{}-{}.png'.format(
                 get_cycle_label(self.nc), sep, self.append, self.type, var)
             self.plot(figname)
-            # fig.savefig(dest)
-            # print('Data: {}, printing: {}'.format(np.shape(zi), dest))
-            # if args.screen:
-            #     plt.show()
-            # plt.close(fig)
 
     def scatters(self):
+        """Plot two surface variables on a map for TSG-like trajectory data."""
         SSPS = self.nc.variables[self.keys[0]]
         SSTP = self.nc.variables[self.keys[1]]
         LATITUDE = self.nc.variables[self.dims[1]]
@@ -569,13 +485,95 @@ class Plots():
 
         figname = '{}_TSG_COLCOR_SCATTER.png'.format(CM)
         self.plot(figname)
-        # fig.savefig(dest)
-        # print('Printing: ', dest)
-        # if args.screen:
-        #     plt.show()
-        # plt.cla()
+
+def processArgs():
+    """Build the command-line parser used by the plotting script."""
+    parser = argparse.ArgumentParser(
+        description='This program read CTD NetCDF file and plot parameters vs PRES',
+        usage='\npython plots.py -t <TYPE> -s (SECTIONS) <OPTIONS> ... | -p (PROFILES) <OPTIONS> ...\n'
+        'PROFILES:\n'
+        'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -p -k PRES TEMP PSAL DOX2 FLU2 -g -c k- b- r- m- g-\n'
+        'python plots.py netcdf/OS_AMAZOMIX_CTD.nc -t CTD -p -k PRES TEMP PSAL DOX2 FLU2 -g -c k- b- r- m- g- -g -o plots/AMAZOMIX\n'
+        'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -p -k DEPTH TEMP DENS SVEL -c k- b- k- g- -g\n'
+        'python plots.py netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP -p -k DEPTH EWCT NSCT -c k- r- b- -g\n'
+        'SECTIONS:\n'
+        'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s -k PRES TEMP -l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 200 --clevels=30 --autoscale 0 30\n'
+        'python plots.py netcdf/OS_PIRATA-FR31_CTD.nc -t CTD -s --append 1N-10W_10S_10W -k PRES PSAL -l 5 28 --xaxis LATITUDE --yscale 0 250 250 2000 --xinterp 24 --yinterp 100 --clevels=15 --autoscale 34 37\n'
+        'python plots.py netcdf/OS_PIRATA-FR31_ADCP.nc -t ADCP -s --append point-fixe_0-10W -k DEPTH EWCT NSCT -l 33 45 --xaxis TIME --yscale 0 500 --xinterp 20 --yinterp 50 --clevels 15 --autoscale -150 150\n'
+        'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s -k DEPTH TEMP -xaxis LATITUDE\n'
+        'python plots.py netcdf/OS_PIRATA-FR31_XBT.nc -t XBT -s -k DEPTH TEMP -xaxis TIME -l 29 36\n'
+        'python plots.py netcdf/OS_AMAZOMIX_TSG.nc -t TSG --scatter  -k SSPS SSTP -o plots/AMAZOMIX\n'
+        ' \n',
+        formatter_class=argparse.RawTextHelpFormatter,
+        epilog='J. Grelet IRD US191 - March 2021 / April 2021')
+    parser.add_argument('files',
+                        help='netcdf file to parse')
+    parser.add_argument('-a', '--append', default="",
+                        help='string to append in output filename')
+    parser.add_argument('-t', '--type',
+                        choices=['CTD', 'XBT', 'ADCP', 'TSG'],
+                        required=True,
+                        help='select type instrument CTD, XBT, LADCP, TSG')
+    parser.add_argument('-p', '--profiles', '--profile',
+                        action='store_true',
+                        help='plot profiles')
+    parser.add_argument('-k', '--keys',
+                        nargs='+',
+                        help='select physical parameters key(s), (default: %(default)s)')
+    parser.add_argument('-l', '--list',
+                        nargs='+', type=int,
+                        help='select first and last profile, default (none) is all')
+    parser.add_argument('-e', '--exclude',
+                        nargs='*', type=int, default=[],
+                        help='give a list of profile(s) to exclude')
+    parser.add_argument('-c', '--colors',
+                        nargs='+',
+                        help='select colors, ex: k- b- r- m- g-')
+    parser.add_argument('-f', '--force',
+                        action='store_true',
+                        help='force graphic output even if the file exist')
+    parser.add_argument('-g', '--grid',
+                        action='store_true',
+                        help='add grid')
+    parser.add_argument('-s', '--sections', '--section',
+                        action='store_true',
+                        help='plot sections')
+    parser.add_argument('--scatters', '--scatter',
+                        action='store_true',
+                        help='plot scatters')
+    parser.add_argument('--dims', '--dimensions',
+                        nargs='+', default=DEFAULT_DIMS,
+                        help='give dimensions name, ex: TIME, LATITUDE, LONGITUDE')
+    parser.add_argument('--xaxis',
+                        choices=['LATITUDE', 'LONGITUDE', 'TIME'], default='TIME',
+                        help='select xaxis for sections')
+    parser.add_argument('--yscale', action=Store_as_array, nargs='*', type=int, default=np.asarray([0, 1000]),
+                        help='select vartical scale for sections, ex: 0 2000 or 0 250 250 2000')
+    parser.add_argument('--xinterp', type=int, default=None,
+                        help='horizontal interpolation points')
+    parser.add_argument('--yinterp', type=int, default=1,
+                        help='vertical interpolation step, none plot raw data')
+    parser.add_argument('--clevels', type=int, default=20,
+                        help='contour levels')
+    parser.add_argument('--autoscale', nargs='*', type=int, default=[0],
+                        help=textwrap.dedent('''\
+        None:       use NetCDF valid min and max
+        True:       use min(Z) and max(Z)
+        [min, max]: define manually min and max'''))
+    parser.add_argument('--display', '--display_profiles',
+                        action='store_true',
+                        help='display profiles number on top axes')
+    parser.add_argument('--screen',
+                        action='store_true',
+                        help='display graphics on screen')
+    parser.add_argument('-o', '--out',
+                        help='output path, default is plots/')
+    parser.add_argument('-d', '--debug', help='display debug informations',
+                        action='store_true')
+    return parser
 
 def validate_args(args, parser):
+    """Validate combinations that argparse alone cannot express cleanly."""
     if not (args.profiles or args.sections or args.scatters):
         parser.error('one plotting mode is required: --profiles, --sections or --scatter')
     if args.keys is None:
@@ -593,6 +591,7 @@ def validate_args(args, parser):
 
 
 def resolve_output_path(args):
+    """Resolve the output directory from explicit CLI input or plotting mode."""
     if args.out is not None:
         return args.out
     if args.profiles:
@@ -603,6 +602,7 @@ def resolve_output_path(args):
 
 
 def resolve_profile_range(profile_ids, selection):
+    """Resolve the requested profile interval from dataset bounds and --list."""
     start = int(profile_ids[0])
     end = int(profile_ids[-1])
     if selection is None:
@@ -615,6 +615,7 @@ def resolve_profile_range(profile_ids, selection):
 
 
 def main(argv=None):
+    """CLI entrypoint used both by the script and the tests."""
     parser = processArgs()
     args = parser.parse_args(argv)
     validate_args(args, parser)
@@ -647,18 +648,11 @@ def main(argv=None):
             for s in range(start, end+1):
                 p.profiles(s)
 
-        # plot sections
-        # vars:  start, end, xaxis, yscale, xinterp=24, yinterp=200, clevels=20,
-        # autoscale=True
         if args.sections:
             p.section(start, end, args.xaxis, args.yscale, args.exclude, args.xinterp,
                     args.yinterp, args.clevels, args.autoscale, args.display)
     return 0
 
 
-# main program
-# 'b' = blue (bleu), 'g' = green (vert), 'r' = red (rouge),
-# 'c' = cyan (cyan), 'm' = magenta (magenta), 'y' = yellow (jaune),
-# 'k' = black (noir), 'w' = white (blanc).
 if __name__ == '__main__':
     raise SystemExit(main())
