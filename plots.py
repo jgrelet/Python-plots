@@ -13,8 +13,8 @@ import textwrap
 import os
 import sys
 import re
-import julian
 import math
+from datetime import datetime, timedelta
 import numpy as np
 from scipy.interpolate import griddata
 import matplotlib
@@ -65,8 +65,7 @@ from matplotlib import gridspec
 from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 import cartopy.crs as ccrs
 
-JULIAN_1950 = 33282
-JULIAN_1970 = 2440587.5
+CNES_EPOCH = datetime(1950, 1, 1)
 DEGREE = u"\u00B0"  # u"\N{DEGREE SIGN}"
 DEFAULT_COLORS = ['k-', 'b-', 'r-', 'm-', 'g-']
 DEFAULT_DIMS = ['TIME', 'LATITUDE', 'LONGITUDE']
@@ -185,14 +184,11 @@ def julian2dt(jd):
     # Julian Date	12h Jan 1, 4713 BC
     # Modified JD	0h Nov 17, 1858	JD − 2400000.5
     # CNES JD	0h Jan 1, 1950	JD − 2433282.5
-    jd = jd + JULIAN_1950
-    dt = julian.from_jd(jd, fmt='mjd')
-    return dt
+    return CNES_EPOCH + timedelta(days=float(jd))
 
 
 def dt2julian(dt):
-    jd = julian.to_jd(dt) - JULIAN_1970
-    return jd
+    return (dt - CNES_EPOCH).total_seconds() / 86400.0
 
 
 def get_cycle_label(nc):

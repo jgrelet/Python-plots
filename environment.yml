@@ -10,6 +10,3 @@ dependencies:
   - cartopy
   - cartopy_offlinedata
   - toml
-  - pip
-  - pip:
-      - julian

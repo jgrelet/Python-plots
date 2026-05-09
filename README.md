@@ -26,6 +26,8 @@ mamba env create -f environment.yml
 conda activate python-plots
 ```
 
+The single `environment.yml` file is intended to work on both Windows and Linux.
+
 ## Tests
 
 ```sh

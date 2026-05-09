@@ -1,5 +1,6 @@
 import os
 import unittest
+from datetime import datetime
 
 os.environ.setdefault('MPLBACKEND', 'Agg')
 
@@ -80,3 +81,13 @@ class CliHelpersTest(unittest.TestCase):
             plots.select_matplotlib_backend(['--screen', '-p'], {'MPLBACKEND': 'Agg'}),
             'QtAgg',
         )
+
+    def test_julian2dt_origin_is_cnes_epoch(self):
+        self.assertEqual(plots.julian2dt(0), datetime(1950, 1, 1))
+
+    def test_dt2julian_origin_is_zero(self):
+        self.assertEqual(plots.dt2julian(datetime(1950, 1, 1)), 0)
+
+    def test_julian_round_trip_preserves_fractional_day(self):
+        dt = datetime(2021, 4, 30, 6, 30, 0)
+        self.assertEqual(plots.julian2dt(plots.dt2julian(dt)), dt)
